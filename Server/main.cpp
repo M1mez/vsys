@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 enum{READ, LIST, SEND, DEL};
 
@@ -31,6 +32,9 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 
+   //DIR *mStorage = opendir(argv[2]);
+
+    printf("%s", argv[2]);
 	//printf("%s %s\n", argv[1],argv[2]);
 
 	createSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -141,5 +145,6 @@ int main(int argc, char **argv){
 
 	close(newSocket);
 	close(createSocket);
+	//closedir(*mStorage);
 	return 0;
 }

@@ -1,5 +1,5 @@
 #prepare parameters and commands
-ip=`ifconfig wlo1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+ip=`ifconfig ens33 | grep 'inet Adresse:' | cut -d: -f2 | awk '{ print $1}'`
 path=`pwd`
 serverCmd="bash -c \"$path/runServer 5001 ./mailStorage\""
 clientCmd="bash -c \"$path/runClient 5001 $ip\""

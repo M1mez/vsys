@@ -92,14 +92,14 @@ int main(int argc, char **argv){
                 break;
             }
             default: {
-                printf("No valid Input detected!\ntry:\n  READ\n  LIST\n  SEND\n  DEL\n");
+                printf("No valid Input detected!\ntry:\n  READ\n  LIST\n  SEND\n  DEL\n  QUIT\n");
                 break;
             }
 		}
 
 		fgets(buffer,1024,stdin);
 		send(createSocket,buffer,strlen(buffer),0);
-	}while(strcmp(buffer,"quit\n") !=0);
+	}while(strcmp(buffer,"QUIT\n") !=0);
 
 	close(createSocket);
 return 0;
