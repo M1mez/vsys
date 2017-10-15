@@ -1,1 +1,7 @@
-*.pdf
+*
+
+!Server/main.cpp
+!Client/main.cpp
+!mailStorage/*
+!.gitignore
+
