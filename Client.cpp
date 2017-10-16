@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <iostream>
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
@@ -19,6 +21,8 @@
 enum{READ, LIST, SEND, DEL};
 
 bool sendMessage(int createSocket, char buffer[], int maxInput);
+
+using namespace std;
 
 int main(int argc, char **argv){
 
@@ -46,7 +50,7 @@ int main(int argc, char **argv){
 
 	if(connect (createSocket, (struct sockaddr *) &address,sizeof(address)) == 0){
 		printf("Connected to server.\n");
-		size = recv(createSocket,buffer,1023,0);
+		size = recv(createSocket,buffer,RCVBUFF,0);
 		if(size>0){
 			buffer[size]='\0';
 			printf("%s", buffer);
@@ -66,7 +70,7 @@ int main(int argc, char **argv){
 			option = 2;
 		}else if(strncmp(buffer,"DEL",3) == 0){
 			option = 3;
-		}else option = -1;
+		}
 
 
 		switch(option) {
@@ -79,17 +83,17 @@ int main(int argc, char **argv){
                 break;
             }
             case SEND: {
-                char *sendInfo[4] = {"Sender: ", "Empfänger: ", "Betreff: ", "Nachricht:\n"};
+                string sendInfo[4] = {"Sender: ", "Empfänger: ", "Betreff: ", "Nachricht:\n"};
                 int sendCount = 0;
                 printf("Client send\n");
 
-                printf("%s", sendInfo[sendCount++]);
+                cout << sendInfo[sendCount++] << endl;
                     if(sendMessage(createSocket, buffer, 10)) break;
-                printf("%s", sendInfo[sendCount++]);
+                cout << sendInfo[sendCount++] << endl;
                     if(sendMessage(createSocket, buffer, 10)) break;
-                printf("%s", sendInfo[sendCount++]);
+                cout << sendInfo[sendCount++] << endl;
                     if(sendMessage(createSocket, buffer, 82)) break;
-                printf("%s", sendInfo[sendCount]);
+                cout << sendInfo[sendCount++] << endl;
                 while(strcmp(buffer,".\n") != 0)
                     sendMessage(createSocket, buffer, SNDBUFF);
                 printf("~~~~~~~~~~~~~\nMessage sent!\n");
@@ -121,10 +125,10 @@ bool sendMessage(int createSocket, char buffer[], int maxInput){
             return true;
         }
         nameSize = strlen(buffer);
-        if (nameSize > maxInput){
+        if (nameSize > (unsigned)maxInput){
             printf("Please enter maximum %d letters!\n",maxInput-2);
         }
-    }while(nameSize > maxInput);
+    }while(nameSize > (unsigned)maxInput);
     send(createSocket,buffer,strlen(buffer),0);
     return false;
 }

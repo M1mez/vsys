@@ -25,7 +25,7 @@ using namespace std;
 enum{READ, LIST, SEND, DEL};
 
 void listDir(DIR *mStorageDir);
-DIR *searchUser(DIR *mStorageDir, string name);
+//DIR *searchUser(DIR *mStorageDir, char name[]);
 
 int main(int argc, char **argv){
 	if(argc < 2){
@@ -33,28 +33,29 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 
-	FILE *fp;
-	DIR *dirp;
-	DIR *inbox;
-	DIR *outbox;
+	//FILE *fp;
+
 	int size;
-	int nameSize = 0;
 
 	//build connection
-	struct stat sb;
+	//struct stat sb;
 	socklen_t addrlen;
 	struct sockaddr_in address, clientAddress;
 	int createSocket, newSocket;
-	char buff[20], buffer[1024];
+	//char buff[20];
+	char buffer[1024];
 
-
-
-
+    //directory
     const char* path = argv[2];
+    DIR *inboxDir;
+	DIR *outboxDir;
+    DIR *mStorageDir = opendir(path);
+
+
+
     printf("%s %s\n", argv[1],argv[2]);
 
 
-	// mStorageDir = opendir(strcat(argv[2],"/mailStorage")); // READ DIRECTORY
 
 
 	createSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -67,6 +68,7 @@ int main(int argc, char **argv){
 		perror("bind_error");
 		exit(EXIT_FAILURE);
 	}
+
 
 	listen(createSocket, 5);
 	addrlen = sizeof(struct sockaddr_in);
@@ -108,17 +110,9 @@ int main(int argc, char **argv){
             }
             case SEND: {
                 printf("SEND mail\n");
-                do{
-                    nameSize = recv(newSocket, buffer,RCVBUFF, 0);
-                    printf("%d",nameSize);
-                    if(nameSize > 8){
-                        printf("Junge. Mehr als 8 Zeichen? deppad?");
-                    }else{
-                        buffer[size] = '\0';
-                        printf("Sender: %s", buffer);
-                        outbox = searchUser(buffer);
-                    }
-                }while (nameSize > 8)
+                buffer[size] = '\0';
+                printf("Sender: %s", buffer);
+                //outboxDir = searchUser(mStorageDir, buffer);
                 size = recv(newSocket,buffer,RCVBUFF,0);
                 buffer[size] = '\0';
                 printf("Empfänger: %s",buffer);
@@ -147,18 +141,18 @@ int main(int argc, char **argv){
 	}while(strncmp(buffer,"quit",4) !=0);
 	}
 
-
+/*
 	fp = fopen("allowedAdresses","r");
 	//reading from file
 	while(fscanf(fp,"%s",buff) != EOF ){
 		printf("%s \n", buff);
 		//check if for each id is a folder
-	/*	if((dirp = opendir(buff)) == NULL){
+		if((dirp = opendir(buff)) == NULL){
 			perror("Directory doesn't exist.Creating one. \n");
 		}else{
 			printf("Directory exists. \n");
 		}
-	*/
+
 		if(stat(buff,&sb) == -1){
 			printf("New User found. Creating directory for user: %s\n",buff );
 			//create a new directory with inbox and outbox for each user
@@ -169,7 +163,7 @@ int main(int argc, char **argv){
 			mkdir(buff,0700);
 		}
 	}
-	fclose(fp);
+	fclose(fp);*/
 
 	close(newSocket);
 	close(createSocket);
@@ -177,10 +171,41 @@ int main(int argc, char **argv){
 }
 
 void listDir(DIR* mStorageDir) {
-    struct dirent* mStorage = readdir(mStorageDir);
-    printf("\n%s\n", mStorage->d_name);
-    while (mStorage=readdir(mStorageDir)) // if dp is null, there's no more content to read
-    {
-        printf("%s\n", mStorage->d_name);
+    struct dirent* mFile;
+    while (mFile=readdir(mStorageDir)){// if dp is null, there's no more content to read
+        if(!strncmp(mFile->d_name,".",1) || !strncmp(mFile->d_name,"..",2)) continue;
+        printf("%s\n", mFile->d_name);
     }
 }
+DIR *searchDir(DIR *mStorageDir, string name){
+    struct dirent* userDir;
+    while (userDir=readdir(mStorageDir)){// if dp is null, there's no more content to read
+        if(!strncmp(userDir->d_name,".",1) || !strncmp(userDir->d_name,"..",2)) continue;
+        printf("%s\n", userDir->d_name);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
