@@ -21,6 +21,7 @@
 enum{READ, LIST, SEND, DEL};
 
 bool sendMessage(int createSocket, char buffer[], int maxInput);
+int chooseMode(char buffer[]);
 
 using namespace std;
 
@@ -61,19 +62,8 @@ int main(int argc, char **argv){
 	}
 
 	do {
-	int option = -1;
-        if(strncmp(buffer, "READ",4) == 0){
-			option = 0;
-		}else if(strncmp(buffer,"LIST", 4) == 0){
-			option = 1;
-		}else if(strncmp(buffer,"SEND", 4) == 0){
-			option = 2;
-		}else if(strncmp(buffer,"DEL",3) == 0){
-			option = 3;
-		}
-
-
-		switch(option) {
+	
+		switch(chooseMode(buffer)) {
             case READ: {
                 printf("client read:\n");
                 break;
@@ -133,10 +123,13 @@ bool sendMessage(int createSocket, char buffer[], int maxInput){
     return false;
 }
 
-
-
-
-
+int chooseMode(char buffer[]){
+	if(strncmp(buffer, "READ",4) == 0) return 0;
+	if(strncmp(buffer,"LIST", 4) == 0) return 1;
+	if(strncmp(buffer,"SEND", 4) == 0) return 2;
+	if(strncmp(buffer,"DEL",3) == 0) return 3;
+	return -1;
+}
 
 
 

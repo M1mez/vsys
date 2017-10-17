@@ -25,7 +25,8 @@ using namespace std;
 enum{READ, LIST, SEND, DEL};
 
 void listDir(DIR *mStorageDir);
-//DIR *searchUser(DIR *mStorageDir, char name[]);
+int chooseMode(char buffer[]);
+DIR *searchUser(DIR *mStorageDir, string name, const char* path);
 
 int main(int argc, char **argv){
 	if(argc < 2){
@@ -36,6 +37,8 @@ int main(int argc, char **argv){
 	//FILE *fp;
 
 	int size;
+
+
 
 	//build connection
 	//struct stat sb;
@@ -51,12 +54,9 @@ int main(int argc, char **argv){
 	DIR *outboxDir;
     DIR *mStorageDir = opendir(path);
 
-
+    searchUser(mStorageDir, "if16b042", path);
 
     printf("%s %s\n", argv[1],argv[2]);
-
-
-
 
 	createSocket = socket(AF_INET,SOCK_STREAM,0);
 	memset(&address,0,sizeof(address));
@@ -89,17 +89,12 @@ int main(int argc, char **argv){
 			buffer[size] = '\0';
 			printf("%s", buffer);
 
-		if(strncmp(buffer, "READ",4) == 0){
-			option = 0;
-		}else if(strncmp(buffer,"LIST", 4) == 0){
-			option = 1;
-		}else if(strncmp(buffer,"SEND", 4) == 0){
-			option = 2;
-		}else if(strncmp(buffer,"DEL",3) == 0){
-			option = 3;
-		}else option = -1;
+		
+		string name = "asdad";
+		printf("%s\n",name );
 
-		switch(option) {
+
+		switch(chooseMode(buffer)) {
             case READ: {
                 printf("READ mail\n");
                 break;
@@ -141,30 +136,6 @@ int main(int argc, char **argv){
 	}while(strncmp(buffer,"quit",4) !=0);
 	}
 
-/*
-	fp = fopen("allowedAdresses","r");
-	//reading from file
-	while(fscanf(fp,"%s",buff) != EOF ){
-		printf("%s \n", buff);
-		//check if for each id is a folder
-		if((dirp = opendir(buff)) == NULL){
-			perror("Directory doesn't exist.Creating one. \n");
-		}else{
-			printf("Directory exists. \n");
-		}
-
-		if(stat(buff,&sb) == -1){
-			printf("New User found. Creating directory for user: %s\n",buff );
-			//create a new directory with inbox and outbox for each user
-			mkdir(buff,0700);
-			sprintf(buff,"%s/inbox",buff);
-			mkdir(buff,0700);
-			sprintf(buff, "%s/../outbox", buff);
-			mkdir(buff,0700);
-		}
-	}
-	fclose(fp);*/
-
 	close(newSocket);
 	close(createSocket);
 	return 0;
@@ -172,20 +143,35 @@ int main(int argc, char **argv){
 
 void listDir(DIR* mStorageDir) {
     struct dirent* mFile;
-    while (mFile=readdir(mStorageDir)){// if dp is null, there's no more content to read
+    while ((mFile=readdir(mStorageDir))){// if dp is null, there's no more content to read
         if(!strncmp(mFile->d_name,".",1) || !strncmp(mFile->d_name,"..",2)) continue;
         printf("%s\n", mFile->d_name);
     }
 }
-DIR *searchDir(DIR *mStorageDir, string name){
+DIR *searchDir(DIR *mStorageDir, char*	 name, const char* path){
     struct dirent* userDir;
-    while (userDir=readdir(mStorageDir)){// if dp is null, there's no more content to read
-        if(!strncmp(userDir->d_name,".",1) || !strncmp(userDir->d_name,"..",2)) continue;
+    while ((userDir=readdir(mStorageDir))){// if dp is null, there's no more content to read
+        if(!strncmp(userDir->d_name,".",1) || !strncmp(userDir->d_name,"..",2) || userDir->d_type != DT_DIR) continue;
+
         printf("%s\n", userDir->d_name);
+        if(!strcmp(userDir->d_name, name)){
+        	char* dirName = malloc(strlen(name) + strlen(userDir->d_name) + 2); //"+2" = '/' + 
+        	strcpy(dirName, name);
+        	dirname[strlen(name)] = '/';
+			strcat(dirName, userDir->d_name);
+			printf("%s\n", dirName);
+        }
+        return NULL;
     }
 }
 
-
+int chooseMode(char buffer[]){
+	if(strncmp(buffer, "READ",4) == 0) return 0;
+	if(strncmp(buffer,"LIST", 4) == 0) return 1;
+	if(strncmp(buffer,"SEND", 4) == 0) return 2;
+	if(strncmp(buffer,"DEL",3) == 0) return 3;
+	return -1;
+}
 
 
 
