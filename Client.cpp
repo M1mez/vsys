@@ -109,10 +109,11 @@ return 0;
 
 bool sendMessage(int createSocket, char buffer[], int maxInput){
     size_t nameSize;
+    bool isQuit = false;
     do{
         fgets(buffer,SNDBUFF,stdin);
         if(strncmp(buffer, "QUIT",4) == 0 && maxInput != SNDBUFF){
-            return true;
+            isQuit = true;
         }
         nameSize = strlen(buffer);
         if (nameSize > (unsigned)maxInput){
@@ -120,7 +121,7 @@ bool sendMessage(int createSocket, char buffer[], int maxInput){
         }
     }while(nameSize > (unsigned)maxInput);
     send(createSocket,buffer,strlen(buffer),0);
-    return false;
+    return false || isQuit;
 }
 
 int chooseMode(char buffer[]){
