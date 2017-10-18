@@ -22,6 +22,9 @@
 #include <csignal>
 #include <ctype.h>
 #include <fstream>
+#include <ctime>
+#include <sstream>
+#include <time.h>
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
@@ -39,6 +42,8 @@ typedef struct Information {
 	string path;
 	int box;
 	string user;
+	string sender;
+	string receiver;
 } Information;
 
 void listDir(Information *info, DIR *target);
@@ -48,10 +53,12 @@ string rcvMessage(Information *info, int option);
 DIR *inOrOut(Information *info);
 void sendVector(Information *info, vector<string>);
 void readFile(Information *info, DIR *target, string fileName);
-void emptyError(Information *info, string message = "");
-void saveMessage(Information *info, string sender, string receiver, vector<string> message);
+void customMessage(Information *info, string message = "");
+void saveMessage(Information *info, vector<string> message);
+void deleteMessage(Information *info, string user, string fileName, int option);
 
 int main(int argc, char **argv){
+	srand(time(NULL));
 	//signal(SIGPIPE, SIG_IGN);
 	setbuf(stdin, NULL);
 	if(argc < 2){
@@ -122,7 +129,7 @@ int main(int argc, char **argv){
 			            		DIR *listDirPtr = inOrOut(&info);
 			            		if(listDirPtr == NULL){
 			            			string message = "An ERROR happened!";
-			            			emptyError(&info, message);
+			            			customMessage(&info, message);
 			            			break;
 			            		}
 			            		readFile(&info, listDirPtr, fileName);
@@ -207,6 +214,8 @@ int main(int argc, char **argv){
 			        	}while(rcvCount < 3);
 			        	if (isQuit) break;
 			        	cout << sendStep[0] + " " << sendStep[1] + " " << sendStep[2] << endl;
+			        	info.sender = sendStep[0];
+			        	info.receiver = sendStep[1];
 
 			        	searchDir(&info, sendStep[0]);
 			        	searchDir(&info, sendStep[1]);
@@ -218,6 +227,11 @@ int main(int argc, char **argv){
 			        }
 			        case DEL: {
 			            printf("DELETE mail\n");
+			            string user = rcvMessage(&info, NOMESSAGE);
+			            int option = stoi(rcvMessage(&info, ONEORTWO));
+			            string fileName = rcvMessage(&info, NOMESSAGE);
+
+			            deleteMessage(&info, user, fileName, option);
 			            break;
 			        }
 			        case QUIT: {
@@ -247,7 +261,7 @@ void listDir(Information *info, DIR *target) {
         entries.push_back((string)mFile->d_name);
     }
     if (entries.empty()){
-    	emptyError(info, "NO files where found!");
+    	customMessage(info, "NO files where found!");
     }
     sendVector(info, entries);
 }
@@ -322,7 +336,7 @@ void readFile(Information *info, DIR *target, string fileName) {
 			}
         }
     }
-    if (!fileFound) emptyError(info, "That file was NOT found!");
+    if (!fileFound) customMessage(info, "That file was NOT found!");
 }
 
 DIR *inOrOut(Information *info){
@@ -380,12 +394,14 @@ string rcvMessage(Information *info, int option){
 			return tmp;
 		}
 		case ISMESSAGE: {
+			vector<string> newMessage;
 	    	do{
 	            size = recv(info->newS,buffer,RCVBUFF,0);
 	            buffer[size] = '\0';
 	            printf("%s", buffer);
-	            //TODO save message
-	        }while(strcmp(buffer,DELIMITER) != 0);		
+	            newMessage.push_back((string)buffer);
+	        }while(strcmp(buffer,DELIMITER) != 0);	
+	        saveMessage(info, newMessage);
 	        break;
 		}
 		case ONEORTWO: {
@@ -413,22 +429,50 @@ void sendVector(Information *info, vector<string> entries){
 	send(info->newS, DELIMITER, strlen(DELIMITER),0);
 }
 
-void emptyError(Information *info, string message){
+void customMessage(Information *info, string message){
 	vector<string> vectorError;
 	vectorError.push_back(message);
 	sendVector(info, vectorError);
 }
 
-void saveMessage(Information *info, string sender, string receiver, vector<string> message){
-	string senderDir =   (string(info->path) + "/" + sender + "/outbox");
-	string receiverDir = (string(info->path) + "/" + receiver + "/inbox");
+void saveMessage(Information *info, vector<string> message){
+	string random = "" + rand();
 
-	
-	
+	string senderUID = info->receiver + random; 
+	string receiverUID = info->sender + random;
+	cout << senderUID;
+
+	string senderDir =   (string(info->path) + "/" + info->sender + "/outbox");
+	string receiverDir = (string(info->path) + "/" + info->receiver + "/inbox");
+	cout << senderDir;
+
+	FILE *senderFile = fopen(senderDir.c_str() ,"a");
+	FILE *receiverFile = fopen(receiverDir.c_str() ,"a");
+
+	for (string i : message){
+		fprintf(senderFile,   "%s\n", i.c_str());
+		fprintf(receiverFile, "%s\n", i.c_str());
+	}
+
+	fclose(senderFile);
+	fclose(receiverFile);
 }
 
 
+void deleteMessage(Information *info, string user, string fileName, int option){
+	if(!(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
+	string folder = (string(info->path) + "/" + user + (option == INBOX ? "/inbox/" : "/outbox/"));
+	string filePath = folder + fileName;
 
+	if(remove(filePath.c_str()) != 0){
+		string noFileFound = "No File found with name: \"" + fileName + "\"";
+		customMessage(info, noFileFound);
+	}else {
+		string fileDeleted = "File: \"" + fileName + "\" was successfully deleted!";
+		customMessage(info, fileDeleted);
+	}
+
+}
 
 
 

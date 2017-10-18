@@ -135,6 +135,24 @@ int main(int argc, char **argv){
             case DEL: {
                 memset(buffer,'\0',strlen(buffer));
                 printf("client del\n");
+                cout << "User: ";
+                    if(sendMessage(createSocket, buffer, 8, NOMESSAGE)) break;
+                cout << "1: Delete an inbox  entry!"  << endl;
+                cout << "2: Delete an outbox entry!" << endl;
+                cout << "9: Quit to menu!" << endl;
+                    if(sendMessage(createSocket, buffer,  1, ONEORTWO)) break;
+                cout << "Which Message do you want to delete?" << endl;
+                    if(sendMessage(createSocket, buffer, 20, NOMESSAGE)) break;
+
+                do{
+                    size = recv(createSocket,buffer,RCVBUFF,0);
+                    buffer[size] = '\0';
+                    if(strncmp(buffer,".\n",2) == 0) break;
+                    printf("%s\n", buffer);
+                    send(createSocket,".\n",strlen(".\n"),0);
+                }while(strncmp(buffer,".\n",2) != 0);  
+                    send(createSocket,".\n",strlen(".\n"),0);
+
                 break;
             }
             case QUIT: { 
