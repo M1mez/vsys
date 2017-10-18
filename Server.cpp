@@ -436,10 +436,10 @@ void customMessage(Information *info, string message){
 }
 
 void saveMessage(Information *info, vector<string> message){
-	string random = "" + rand();
-
-	string senderUID = info->receiver + random; 
-	string receiverUID = info->sender + random;
+	
+/*
+	string senderUID = info->receiver;
+	string receiverUID = info->sender;
 	cout << senderUID;
 
 	string senderDir =   (string(info->path) + "/" + info->sender + "/outbox");
@@ -455,7 +455,7 @@ void saveMessage(Information *info, vector<string> message){
 	}
 
 	fclose(senderFile);
-	fclose(receiverFile);
+	fclose(receiverFile);*/
 }
 
 
