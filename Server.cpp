@@ -111,12 +111,14 @@ int main(int argc, char **argv){
 			        case LIST: {
 			            printf("LIST mails: \n\n");
 			            string user = rcvMessage(&info, NOMESSAGE, NULL);
-			            DIR* userDir = searchDir(&info, user);
+			            //DIR* userDir = searchDir(&info, user);
 			            cout << "now try to rcv";
 
 			            string trythis = rcvMessage(&info, NOMESSAGE, NULL);
 
-			            listDir(inOrOut(&info, user, INBOX));
+			            DIR *inouttry = inOrOut(&info, user, INBOX);
+			            cout <<" after inorout";
+			            listDir(inouttry);
 
 			            cout << "now switch inorout" << trythis;
 			            switch(stoi(trythis)){
@@ -212,39 +214,54 @@ DIR *searchDir(Information *info, string name){
     dirName += name;
 
     struct dirent *userDir;
-    while ((userDir=readdir(info->mStorageDir))){// if dp is null, there's no more content to read
+    while ((userDir=readdir(info->mStorageDir)) != NULL){// if dp is null, there's no more content to read
         if(!strncasecmp(userDir->d_name,".",1) || !strncasecmp(userDir->d_name,"..",2) || userDir->d_type != DT_DIR){
         	continue;
         }
         if((string)userDir->d_name == name){
-        	cout << "Found DIR: " << name << endl;
-			closedir(info->mStorageDir);
-			return opendir(dirName.c_str());
+        	cout << "Found DIR: " << dirName << endl;
+    		if (closedir(info->mStorageDir)) cout << "closdir not successful!!!";
+			else cout << "closed mailStorage" << endl;
+			DIR *tmpDir = opendir(dirName.c_str());
+			if(tmpDir == NULL) cout << "WHYTHEFUCK!!!!"<<endl;
+			return tmpDir;
         }
+    	usleep(10);
     }
     mkdir(dirName.c_str(), 777);
     cout << "Created DIR: " << name << endl;
-    closedir(info->mStorageDir);
+    if (closedir(info->mStorageDir)) cout << "closdir not successful!!!";
+	cout << "closed mailStorage after made dir" << endl;
 	return opendir(dirName.c_str());
 }
 
 DIR *inOrOut(Information *info, string user, int option){
 	struct dirent *dest;
-	string currentDir(get_current_dir_name());
+	/*string currentDir(get_current_dir_name());
 	currentDir += ("/mailStorage/" + user + "/" + (option == OUTBOX ? "outbox" : "inbox"));
 	cout << "currentDir: " << currentDir << endl;
 	//closedir(info->mStorageDir);
-	DIR *userDir = opendir(currentDir.c_str());
-	while ((dest=readdir(userDir))){// if dp is null, there's no more content to read
+	DIR *userDir = opendir(currentDir.c_str());*/
+
+	string currentDir = (string(info->path) + "/" + user + (option == OUTBOX ? "/outbox" : "/inbox"));
+
+	cout << currentDir << " | in inorout" << endl;
+
+	DIR *userDir = searchDir(info, user);
+	cout << "hiervllt?";
+	while ((dest=readdir(userDir)) != NULL){// if dp is null, there's no more content to read
         if(!strncasecmp(dest->d_name,".",1) || !strncasecmp(dest->d_name,"..",2) || dest->d_type != DT_DIR){
         	continue;
         }
         printf("WHAT CASE? %s\n", dest->d_name);
+        cout << currentDir << endl;
         switch(option){
 			case INBOX: {
 				if(strncmp(dest->d_name, "inbox", 5) == 0){
 					printf("WASCASEINBOX\n" );
-					return opendir(currentDir.c_str());
+					DIR *tryy = opendir(currentDir.c_str());
+					cout << "tryy";
+					return tryy;
 				}
 				break;
 			}
@@ -271,7 +288,7 @@ int chooseMode(char buffer[]){
 }
 
 string rcvMessage(Information *info, bool noMessage, string sendInfo[3]){
-	char buffer[RCVBUFF];
+	char buffer[RCVBUFF] = {};
 	int size;
 	if(noMessage){
 		size = recv(info->newS,buffer,RCVBUFF,0);
