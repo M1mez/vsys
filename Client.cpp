@@ -66,7 +66,7 @@ int main(int argc, char **argv){
 
 	do {
 	   
-        printf("Type one of the following:\n  LIST\n  SEND\n  DEL\n  QUIT\n");
+        printf("Type one of the following:\n  READ\n  LIST\n  SEND\n  DEL\n  QUIT\n");
         fgets(buffer,SNDBUFF,stdin);
         send(createSocket,buffer,strlen(buffer),0);
 		switch(chooseMode(buffer)) {
@@ -202,6 +202,7 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
             break;
         }
     }
+    memset(buffer,'0', SNDBUFF);
     return isQuit;
 }
 
