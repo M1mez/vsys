@@ -19,6 +19,7 @@
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
+#define DELIMITER ".\n"
 
 enum{READ, LIST, SEND, DEL, QUIT};
 enum{ISMESSAGE, NOMESSAGE, ONEORTWO};
@@ -71,6 +72,7 @@ int main(int argc, char **argv){
         send(createSocket,buffer,strlen(buffer),0);
 		switch(chooseMode(buffer)) {
             case READ: {
+                memset(buffer,'\0',strlen(buffer));
                 printf("client read:\n");
 
 
@@ -94,6 +96,7 @@ int main(int argc, char **argv){
                 break;
             }
             case LIST: {
+                memset(buffer,'\0',strlen(buffer));
                 printf("client list: \n\n");
                 cout << "Whose mails would you like to list? (Sender)" << endl;
                     if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
@@ -113,6 +116,7 @@ int main(int argc, char **argv){
                 break;
             }
             case SEND: {
+                memset(buffer,'\0',strlen(buffer));
                 string sendInfo[4] = {"Sender: ", "Empfänger: ", "Betreff: ", "Nachricht:\n"};
                 int sendCount = 0;
                 printf("Client send\n");
@@ -129,10 +133,12 @@ int main(int argc, char **argv){
                 break;
             }
             case DEL: {
+                memset(buffer,'\0',strlen(buffer));
                 printf("client del\n");
                 break;
             }
             case QUIT: { 
+                memset(buffer,'\0',strlen(buffer));
                 close(createSocket);
                 break;
             }
@@ -154,10 +160,14 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
     bool isQuit = false;
     //maxInput;
 
+    
     switch(messageType){
         case ISMESSAGE: {
             do{
+                memset(buffer,'0', SNDBUFF);
                 fgets(buffer,SNDBUFF,stdin);
+                buffer[strlen(buffer)] = '\0';
+
                 if(strlen(buffer) > (unsigned)maxInput+1){
                     cout << "Line too long! Please stay under" << maxInput << "signs!" << endl;
                     continue;
@@ -168,7 +178,9 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
         }
         case NOMESSAGE: {
             do{
+                memset(buffer,'0', SNDBUFF);
                 fgets(buffer,SNDBUFF,stdin);
+                buffer[strlen(buffer)] = '\0';
 
                 if(strncasecmp(buffer, "QUIT",4) == 0) isQuit = true;
             
@@ -185,6 +197,8 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
             do{
                 memset(buffer,'0', SNDBUFF);
                 fgets(buffer,SNDBUFF,stdin);
+                buffer[strlen(buffer)] = '\0';
+
                 tempNum = atoi(buffer);
                 printf("INPUT: %d\n", tempNum );
                 if(tempNum == 9) {
