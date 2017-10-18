@@ -43,7 +43,8 @@ int chooseMode(char buffer[]);
 DIR *searchDir(Information *info, string name);
 string rcvMessage(Information *info, bool noMessage, string sendInfo[3]);
 DIR *inOrOut(Information *info, string user, int option);
-void sendVector(vector<string>);
+void sendVector(Information *info, vector<string>);
+void readFile(Information *info, DIR *target, string fileName);
 
 int main(int argc, char **argv){
 	//signal(SIGPIPE, SIG_IGN);
@@ -99,15 +100,39 @@ int main(int argc, char **argv){
 				switch(chooseMode(buffer)) {
 			        case READ: {
 		                printf("READ mail\n");
+
+		                bool isQuit = false;
 			            string user = rcvMessage(&info, NOMESSAGE, NULL);
+			            	if(strncasecmp(user.c_str(), "QUIT", 4) == 0) isQuit = true;
 			            int option = stoi(rcvMessage(&info, NOMESSAGE, NULL));
+			            string fileName = rcvMessage(&info, NOMESSAGE, NULL);
+			            	if(strncasecmp(fileName.c_str(), "QUIT", 4) == 0) isQuit = true;
+							if (isQuit) option = QUIT;
 
+			            switch(option){
+			            	case INBOX: {
+			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
+			            		readFile(&info, listDirPtr, fileName);
+			            		closedir(listDirPtr);
+								info.mStorageDir = opendir(info.path.c_str());
+			            	}
 
-
-
-
-		                
-		                break;
+			            	case OUTBOX: {
+			            		DIR *listDirPtr = inOrOut(&info, user, OUTBOX);
+			            		readFile(&info, listDirPtr, fileName);
+			            		closedir(listDirPtr);
+								info.mStorageDir = opendir(info.path.c_str());
+			            	}
+			            	case QUIT: {
+			            		cout << "User chose to quit to menu!" << endl;
+			            		break;
+			            	}
+			            	default: {
+			            		cout << "ERROR IN SERVER LIST" << endl;
+			            		break;
+			            	}
+			            }
+			            break;
             		}
 			        case LIST: {
 			            printf("LIST mails: \n\n");
@@ -117,12 +142,16 @@ int main(int argc, char **argv){
 			            switch(option){
 			            	case INBOX: {
 			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
-			            		sendVector(listDir(listDirPtr));
+			            		sendVector(&info, listDir(listDirPtr));
+			            		closedir(listDirPtr);
+								info.mStorageDir = opendir(info.path.c_str());
 			            	}
 
 			            	case OUTBOX: {
-			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
-			            		sendVector(listDir(listDirPtr));
+			            		DIR *listDirPtr = inOrOut(&info, user, OUTBOX);
+			            		sendVector(&info, listDir(listDirPtr));
+			            		closedir(listDirPtr);
+								info.mStorageDir = opendir(info.path.c_str());
 			            	}
 			            	case QUIT: {
 			            		cout << "User chose to quit to menu!" << endl;
@@ -185,7 +214,7 @@ vector<string> listDir(DIR *target) {
     struct dirent *mFile;
     vector<string> entries;
 
-    while ((mFile=readdir(target))){// if dp is null, there's no more content to read
+    while ((mFile=readdir(target))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
         //printf("%s\n", mFile->d_name);
         entries.push_back(string(mFile->d_name));
@@ -199,7 +228,7 @@ DIR *searchDir(Information *info, string name){
     dirName += name;
 
     struct dirent *userDir;
-    while ((userDir=readdir(info->mStorageDir)) != NULL){// if dp is null, there's no more content to read
+    while ((userDir=readdir(info->mStorageDir)) != NULL){
         if(!strncasecmp(userDir->d_name,".",1) || !strncasecmp(userDir->d_name,"..",2) || userDir->d_type != DT_DIR){
         	continue;
         }
@@ -219,12 +248,14 @@ DIR *searchDir(Information *info, string name){
 	return opendir(dirName.c_str());
 }
 
-vector<string> readFile(DIR *target, string fileName) {
+//string searchFile(Information *info, string fileName)
+
+void readFile(Information *info, DIR *target, string fileName) {
 	struct dirent *box;
 	if(!(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
 
 	while ((box=readdir(target)) != NULL){
-        if(!strncasecmp(box->d_name,".",1) || !strncasecmp(userDir->d_name,"..",2)){
+        if(!strncasecmp(box->d_name,".",1) || !strncasecmp(box->d_name,"..",2)){
         	continue;
         }
 
@@ -233,51 +264,36 @@ vector<string> readFile(DIR *target, string fileName) {
         	
         	vector<string> message;
         	ifstream file;
-			file.open();
+			file.open(fileName);
 			string doneRead;
 
 			while(getline(file,doneRead))
-			{		 
-				const char* pointer = doneRead.c_str();
-				*copy(doneRead.begin(), doneRead.end(), buffer) = '\0';
-				buffer[strlen(pointer)-1] = '\n';
-				send(info.newS, buffer, strlen(buffer), 0);
+			{		
+				message.push_back(doneRead);
 			}
 			file.close();
 
-
+			sendVector(info, message);
         }
-    	usleep(10);
     }
-
-		
-
-
 }
 
 DIR *inOrOut(Information *info, string user, int option){
 	struct dirent *dest;
-	/*string currentDir(get_current_dir_name());
-	currentDir += ("/mailStorage/" + user + "/" + (option == OUTBOX ? "outbox" : "inbox"));
-	cout << "currentDir: " << currentDir << endl;
-	//closedir(info->mStorageDir);
-	DIR *userDir = opendir(currentDir.c_str());*/
 
 	string currentDir = (string(info->path) + "/" + user + (option == OUTBOX ? "/outbox" : "/inbox"));
 
 	cout << currentDir << " | in inorout" << endl;
 
 	DIR *userDir = searchDir(info, user);
-	while ((dest=readdir(userDir)) != NULL){// if dp is null, there's no more content to read
+	while ((dest=readdir(userDir)) != NULL){
         if(!strncasecmp(dest->d_name,".",1) || !strncasecmp(dest->d_name,"..",2) || dest->d_type != DT_DIR){
         	continue;
         }
-        //printf("WHAT CASE? %s\n", dest->d_name);
         cout << currentDir << endl;
         switch(option){
 			case INBOX: {
 				if(strncmp(dest->d_name, "inbox", 5) == 0){
-					//printf("WASCASEINBOX\n" );
 					if(closedir(userDir)) cout << "could not close dir in inOrOut" << endl; 
 					return opendir(currentDir.c_str());
 				}
@@ -285,7 +301,6 @@ DIR *inOrOut(Information *info, string user, int option){
 			}
 			case OUTBOX: {
 				if(strncmp(dest->d_name, "outbox", 6) == 0){
-					//printf("WASCASEOUTBOX\n" );
 					if(closedir(userDir)) cout << "could not close dir in inOrOut" << endl; 
 					return opendir(currentDir.c_str());
 				}
@@ -330,21 +345,19 @@ string rcvMessage(Information *info, bool noMessage, string sendInfo[3]){
 }
 
 
-void sendVector(vector<string>){
+void sendVector(Information *info, vector<string> entries){
 	for (string i : entries){
 		i += ", ";
 		cout << i;
-		send(info.newS, i.c_str(), strlen(i.c_str()),0);
-		if (rcvMessage(&info, NOMESSAGE, NULL) == ".\n"){
+		send(info->newS, i.c_str(), strlen(i.c_str()),0);
+		if (rcvMessage(info, NOMESSAGE, NULL) == ".\n"){
 			cout << "sending successful!" << endl;
 		}
 	}
-		send(info.newS, ".\n", strlen(".\n"),0);
-		if (rcvMessage(&info, NOMESSAGE, NULL) == ".\n"){
+		send(info->newS, ".\n", strlen(".\n"),0);
+		if (rcvMessage(info, NOMESSAGE, NULL) == ".\n"){
 			cout << "sending successful!" << endl;
 		}
-		closedir(listDirPtr);
-		info.mStorageDir = opendir(info.path.c_str());
 }
 
 
