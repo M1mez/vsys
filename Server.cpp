@@ -127,8 +127,11 @@ int main(int argc, char **argv){
 			            	case OUTBOX: {
 			            		//vector<string> entries(listDir(inOrOut(&info, user, OUTBOX)));
 			            		for (string i : listDir(inOrOut(&info, user, OUTBOX))){
-		            			send(info.createS, (i + '\n').c_str(), strlen((i + '\n').c_str()),0);
+			            			i += '\n';
+			            			cout << i;
+			            			send(info.createS, i.c_str(), strlen(i.c_str()),0);
 			            		}
+			            			send(info.createS, ".\n", strlen(".\n"),0);
 			            		break;
 			            	}
 			            	case QUIT: {
@@ -212,10 +215,9 @@ DIR *searchDir(Information *info, string name){
         }
         if((string)userDir->d_name == name){
         	cout << "Found DIR: " << dirName << endl;
-    		if (closedir(info->mStorageDir)) cout << "closdir not successful!!!";
+    		if (closedir(info->mStorageDir)) cout << "closedir not successful!!!";
 			else cout << "closed mailStorage" << endl;
 			DIR *tmpDir = opendir(dirName.c_str());
-			if(tmpDir == NULL) cout << "WHYTHEFUCK!!!!"<<endl;
 			return tmpDir;
         }
     	usleep(10);
@@ -223,7 +225,7 @@ DIR *searchDir(Information *info, string name){
     mkdir(dirName.c_str(), 777);
     cout << "Created DIR: " << name << endl;
     if (closedir(info->mStorageDir)) cout << "closdir not successful!!!";
-	cout << "closed mailStorage after made dir" << endl;
+	else cout << "closed mailStorage after made dir" << endl;
 	return opendir(dirName.c_str());
 }
 
