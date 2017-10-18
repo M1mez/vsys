@@ -38,7 +38,7 @@ typedef struct Information {
 	string path;
 } Information;
 
-vector<string> listDir(DIR *target);
+void listDir(Information *info, DIR *target);
 int chooseMode(char buffer[]);
 DIR *searchDir(Information *info, string name);
 string rcvMessage(Information *info, bool noMessage, string sendInfo[3]);
@@ -142,14 +142,14 @@ int main(int argc, char **argv){
 			            switch(option){
 			            	case INBOX: {
 			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
-			            		sendVector(&info, listDir(listDirPtr));
+			            		listDir(&info, listDirPtr);
 			            		closedir(listDirPtr);
 								info.mStorageDir = opendir(info.path.c_str());
 			            	}
 
 			            	case OUTBOX: {
 			            		DIR *listDirPtr = inOrOut(&info, user, OUTBOX);
-			            		sendVector(&info, listDir(listDirPtr));
+			            		listDir(&info, listDirPtr);
 			            		closedir(listDirPtr);
 								info.mStorageDir = opendir(info.path.c_str());
 			            	}
@@ -210,16 +210,15 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-vector<string> listDir(DIR *target) {
+void listDir(Information *info, DIR *target) {
     struct dirent *mFile;
     vector<string> entries;
 
     while ((mFile=readdir(target))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
-        //printf("%s\n", mFile->d_name);
-        entries.push_back(string(mFile->d_name));
+        entries.push_back((string)mFile->d_name);
     }
-    return entries;
+    sendVector(info, entries);
 }
 
 DIR *searchDir(Information *info, string name){
