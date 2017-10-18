@@ -111,30 +111,23 @@ int main(int argc, char **argv){
 			        case LIST: {
 			            printf("LIST mails: \n\n");
 			            string user = rcvMessage(&info, NOMESSAGE, NULL);
-			            //DIR* userDir = searchDir(&info, user);
-			            cout << "now try to rcv";
 
-			            string trythis = rcvMessage(&info, NOMESSAGE, NULL);
-
-			            DIR *inouttry = inOrOut(&info, user, INBOX);
-			            cout <<" after inorout";
-			            listDir(inouttry);
-
-			            cout << "now switch inorout" << trythis;
-			            switch(stoi(trythis)){
+			            switch(stoi(rcvMessage(&info, NOMESSAGE, NULL))){
 			            	case INBOX: {
-			            		vector<string> entries(listDir(inOrOut(&info, user, INBOX)));
-			            		for (string i : entries){
-			            			cout << i << endl;
-			            			send(info.createS, (i + '\n').c_str(), i.size()+1,0);
+			            		cout << "HIER INBOX";
+			            		//vector<string> entries(listDir(inOrOut(&info, user, INBOX)));
+			            		for (string i : listDir(inOrOut(&info, user, INBOX))){
+			            			i += '\n';
+			            			cout << i;
+			            			send(info.createS, i.c_str(), strlen(i.c_str()),0);
 			            		}
 			            			send(info.createS, ".\n", strlen(".\n"),0);
 			            		break;
 			            	}
 			            	case OUTBOX: {
-			            		vector<string> entries(listDir(inOrOut(&info, user, OUTBOX)));
-			            		for (string i : entries){
-			            			send(info.createS, (i + '\n').c_str(), i.size()+1,0);
+			            		//vector<string> entries(listDir(inOrOut(&info, user, OUTBOX)));
+			            		for (string i : listDir(inOrOut(&info, user, OUTBOX))){
+		            			send(info.createS, (i + '\n').c_str(), strlen((i + '\n').c_str()),0);
 			            		}
 			            		break;
 			            	}
@@ -199,7 +192,6 @@ vector<string> listDir(DIR *target) {
     struct dirent *mFile;
     vector<string> entries;
 
-    cout << "IWANTTOLISTDIR!";
     while ((mFile=readdir(target))){// if dp is null, there's no more content to read
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
         printf("%s\n", mFile->d_name);
@@ -248,7 +240,6 @@ DIR *inOrOut(Information *info, string user, int option){
 	cout << currentDir << " | in inorout" << endl;
 
 	DIR *userDir = searchDir(info, user);
-	cout << "hiervllt?";
 	while ((dest=readdir(userDir)) != NULL){// if dp is null, there's no more content to read
         if(!strncasecmp(dest->d_name,".",1) || !strncasecmp(dest->d_name,"..",2) || dest->d_type != DT_DIR){
         	continue;
@@ -259,9 +250,7 @@ DIR *inOrOut(Information *info, string user, int option){
 			case INBOX: {
 				if(strncmp(dest->d_name, "inbox", 5) == 0){
 					printf("WASCASEINBOX\n" );
-					DIR *tryy = opendir(currentDir.c_str());
-					cout << "tryy";
-					return tryy;
+					return opendir(currentDir.c_str());
 				}
 				break;
 			}
@@ -292,14 +281,14 @@ string rcvMessage(Information *info, bool noMessage, string sendInfo[3]){
 	int size;
 	if(noMessage){
 		size = recv(info->newS,buffer,RCVBUFF,0);
-		printf("SIZE: %d\n", size);
+		//printf("SIZE: %d\n", size);
     	buffer[size-1] = '\0';
 
     	//int i = atoi(buffer);
     	//cout << "WHAT??" << i << endl;
-    	printf("Received: %s?\n", buffer);
-    	printf("buffer[0]: %c|\n", buffer[0]);
-		printf("X%sX\n",buffer );
+    	printf("Received: _%s_\n", buffer);
+    	//printf("buffer[0]: %c|\n", buffer[0]);
+		//printf("X%sX\n",buffer );
 		//cout << "|" << buffer << "|";
     	string tmp(buffer);
 
