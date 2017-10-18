@@ -1,5 +1,5 @@
 #prepare parameters and commands
-ip=`ifconfig wlo1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+ip=127.0.0.1 #`ifconfig wlo1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 path=`pwd`
 port=$(shuf -i 5000-9999 -n 1)
 serverCmd="bash -c \"$path/runServer $port $path/mailStorage\""

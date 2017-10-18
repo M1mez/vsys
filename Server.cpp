@@ -19,6 +19,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <csignal>
+#include <ctype.h>
+#include <fstream>
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
@@ -40,8 +43,10 @@ int chooseMode(char buffer[]);
 DIR *searchDir(Information *info, string name);
 string rcvMessage(Information *info, bool noMessage, string sendInfo[3]);
 DIR *inOrOut(Information *info, string user, int option);
+void sendVector(vector<string>);
 
 int main(int argc, char **argv){
+	//signal(SIGPIPE, SIG_IGN);
 	if(argc < 2){
 		printf("Please enter Port number and path!\n");
 		exit(EXIT_FAILURE);
@@ -77,7 +82,7 @@ int main(int argc, char **argv){
 
 	listen(info.createS, 5);
 	addrlen = sizeof(struct sockaddr_in);
-
+	
 	while(1){
 		printf("Waiting for connections. \n");
 		info.newS = accept(info.createS, (struct sockaddr *)&clientAddress, &addrlen);
@@ -93,46 +98,31 @@ int main(int argc, char **argv){
 
 				switch(chooseMode(buffer)) {
 			        case READ: {
-		                /*printf("READ mail\n");
-		                ifstream file;
-		                file.open("a.txt");
-		                string doneRead;
+		                printf("READ mail\n");
+			            string user = rcvMessage(&info, NOMESSAGE, NULL);
+			            int option = stoi(rcvMessage(&info, NOMESSAGE, NULL));
 
-		                while(getline(file,doneRead))
-		                {		 
-							const char* pointer = doneRead.c_str();
-							*copy(doneRead.begin(), doneRead.end(), buffer) = '\0';
-							buffer[strlen(pointer)-1] = '\n';
-		                	send(newSocket, buffer, strlen(buffer), 0);
-		                }
-		                file.close();*/
+
+
+
+
+		                
 		                break;
             		}
 			        case LIST: {
 			            printf("LIST mails: \n\n");
 			            string user = rcvMessage(&info, NOMESSAGE, NULL);
+			            int option = stoi(rcvMessage(&info, NOMESSAGE, NULL));
 
-			            switch(stoi(rcvMessage(&info, NOMESSAGE, NULL))){
+			            switch(option){
 			            	case INBOX: {
-			            		cout << "HIER INBOX";
-			            		//vector<string> entries(listDir(inOrOut(&info, user, INBOX)));
-			            		for (string i : listDir(inOrOut(&info, user, INBOX))){
-			            			i += '\n';
-			            			cout << i;
-			            			send(info.createS, i.c_str(), strlen(i.c_str()),0);
-			            		}
-			            			send(info.createS, ".\n", strlen(".\n"),0);
-			            		break;
+			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
+			            		sendVector(listDir(listDirPtr));
 			            	}
+
 			            	case OUTBOX: {
-			            		//vector<string> entries(listDir(inOrOut(&info, user, OUTBOX)));
-			            		for (string i : listDir(inOrOut(&info, user, OUTBOX))){
-			            			i += '\n';
-			            			cout << i;
-			            			send(info.createS, i.c_str(), strlen(i.c_str()),0);
-			            		}
-			            			send(info.createS, ".\n", strlen(".\n"),0);
-			            		break;
+			            		DIR *listDirPtr = inOrOut(&info, user, INBOX);
+			            		sendVector(listDir(listDirPtr));
 			            	}
 			            	case QUIT: {
 			            		cout << "User chose to quit to menu!" << endl;
@@ -197,7 +187,7 @@ vector<string> listDir(DIR *target) {
 
     while ((mFile=readdir(target))){// if dp is null, there's no more content to read
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
-        printf("%s\n", mFile->d_name);
+        //printf("%s\n", mFile->d_name);
         entries.push_back(string(mFile->d_name));
     }
     return entries;
@@ -229,6 +219,42 @@ DIR *searchDir(Information *info, string name){
 	return opendir(dirName.c_str());
 }
 
+vector<string> readFile(DIR *target, string fileName) {
+	struct dirent *box;
+	if(!(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
+
+	while ((box=readdir(target)) != NULL){
+        if(!strncasecmp(box->d_name,".",1) || !strncasecmp(userDir->d_name,"..",2)){
+        	continue;
+        }
+
+        if((string)box->d_name == fileName){
+        	cout << "Found FILE: " << fileName << endl;
+        	
+        	vector<string> message;
+        	ifstream file;
+			file.open();
+			string doneRead;
+
+			while(getline(file,doneRead))
+			{		 
+				const char* pointer = doneRead.c_str();
+				*copy(doneRead.begin(), doneRead.end(), buffer) = '\0';
+				buffer[strlen(pointer)-1] = '\n';
+				send(info.newS, buffer, strlen(buffer), 0);
+			}
+			file.close();
+
+
+        }
+    	usleep(10);
+    }
+
+		
+
+
+}
+
 DIR *inOrOut(Information *info, string user, int option){
 	struct dirent *dest;
 	/*string currentDir(get_current_dir_name());
@@ -246,19 +272,21 @@ DIR *inOrOut(Information *info, string user, int option){
         if(!strncasecmp(dest->d_name,".",1) || !strncasecmp(dest->d_name,"..",2) || dest->d_type != DT_DIR){
         	continue;
         }
-        printf("WHAT CASE? %s\n", dest->d_name);
+        //printf("WHAT CASE? %s\n", dest->d_name);
         cout << currentDir << endl;
         switch(option){
 			case INBOX: {
 				if(strncmp(dest->d_name, "inbox", 5) == 0){
-					printf("WASCASEINBOX\n" );
+					//printf("WASCASEINBOX\n" );
+					if(closedir(userDir)) cout << "could not close dir in inOrOut" << endl; 
 					return opendir(currentDir.c_str());
 				}
 				break;
 			}
 			case OUTBOX: {
 				if(strncmp(dest->d_name, "outbox", 6) == 0){
-					printf("WASCASEOUTBOX\n" );
+					//printf("WASCASEOUTBOX\n" );
+					if(closedir(userDir)) cout << "could not close dir in inOrOut" << endl; 
 					return opendir(currentDir.c_str());
 				}
 				break;
@@ -283,18 +311,10 @@ string rcvMessage(Information *info, bool noMessage, string sendInfo[3]){
 	int size;
 	if(noMessage){
 		size = recv(info->newS,buffer,RCVBUFF,0);
-		//printf("SIZE: %d\n", size);
     	buffer[size-1] = '\0';
-
-    	//int i = atoi(buffer);
-    	//cout << "WHAT??" << i << endl;
-    	printf("Received: _%s_\n", buffer);
-    	//printf("buffer[0]: %c|\n", buffer[0]);
-		//printf("X%sX\n",buffer );
-		//cout << "|" << buffer << "|";
     	string tmp(buffer);
 
-		if(tmp == "QUIT") return "QUIT";	
+		if(strncasecmp(tmp.c_str(), "QUIT", 4)) return "QUIT";	
 		if(tmp == "9") return "4";
 		return tmp;
 
@@ -310,7 +330,22 @@ string rcvMessage(Information *info, bool noMessage, string sendInfo[3]){
 }
 
 
-
+void sendVector(vector<string>){
+	for (string i : entries){
+		i += ", ";
+		cout << i;
+		send(info.newS, i.c_str(), strlen(i.c_str()),0);
+		if (rcvMessage(&info, NOMESSAGE, NULL) == ".\n"){
+			cout << "sending successful!" << endl;
+		}
+	}
+		send(info.newS, ".\n", strlen(".\n"),0);
+		if (rcvMessage(&info, NOMESSAGE, NULL) == ".\n"){
+			cout << "sending successful!" << endl;
+		}
+		closedir(listDirPtr);
+		info.mStorageDir = opendir(info.path.c_str());
+}
 
 
 

@@ -73,13 +73,23 @@ int main(int argc, char **argv){
             case READ: {
                 printf("client read:\n");
 
-                while(strcmp(buffer,".\n") != 0)
-                {
-                    size = recv(createSocket, buffer, RCVBUFF, 0);
+
+                cout << "Whose file would you like to read? (Sender)" << endl;
+                    if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
+                cout << "1: Read an inbox  file!"  << endl;
+                cout << "2: Read an outbox file!" << endl;
+                cout << "9: Quit to menu!" << endl;
+                    if(sendMessage(createSocket, buffer,  1, ONEORTWO)) break;
+                cout << "Name a file!" << endl;
+                    if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
+                do{
+                    size = recv(createSocket,buffer,RCVBUFF,0);
                     buffer[size] = '\0';
-                    string Sender(buffer);
-                    cout << Sender << endl;
-                }
+                    if(strncmp(buffer,".\n",2) == 0) break;
+                    printf("%s\n", buffer);
+                    send(createSocket,".\n",strlen(".\n"),0);
+                }while(strncmp(buffer,".\n",2) != 0);  
+                    send(createSocket,".\n",strlen(".\n"),0);
 
                 break;
             }
@@ -94,9 +104,11 @@ int main(int argc, char **argv){
                 do{
                     size = recv(createSocket,buffer,RCVBUFF,0);
                     buffer[size] = '\0';
-                    if(strcmp(buffer,".\n") == 0) break;
-                    printf("%s", buffer);
-                }while(strcmp(buffer,".\n") != 0);  
+                    if(strncmp(buffer,".\n",2) == 0) break;
+                    printf("%s\n", buffer);
+                    send(createSocket,".\n",strlen(".\n"),0);
+                }while(strncmp(buffer,".\n",2) != 0);  
+                    send(createSocket,".\n",strlen(".\n"),0);
 
                 break;
             }
@@ -132,7 +144,7 @@ int main(int argc, char **argv){
 
 		//fgets(buffer,SNDBUFF,stdin);
 		//send(createSocket,buffer,strlen(buffer),0);
-	}while(strcmp(buffer,"QUIT\n") !=0);
+	}while(strcasecmp(buffer,"QUIT\n") !=0);
 
     return 0;
 }
@@ -171,9 +183,6 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
         case ONEORTWO: {
             int tempNum;
             do{
-                //cin.clear();
-                //cin.ignore(INT_MAX);
-                //cin >> tempNum;
                 memset(buffer,'0', SNDBUFF);
                 fgets(buffer,SNDBUFF,stdin);
                 tempNum = atoi(buffer);
