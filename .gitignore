@@ -1,7 +1,7 @@
 *
 
-!Server.cpp
-!Client.cpp
+!*.cpp
+!*.h
 !mailStorage/*
 !.gitignore
-
+!makefile

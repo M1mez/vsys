@@ -6,8 +6,7 @@ serverCmd="bash -c \"$path/runServer $port $path/mailStorage\""
 clientCmd="bash -c \"$path/runClient $port $ip\""
 
 #compile both files
-g++ -std=c++11 -g -Wall ./Server.cpp -o ./runServer
-g++ -std=c++11 -g -Wall ./Client.cpp -o ./runClient
+make
 
 #print information
 echo "ip = $ip"
@@ -18,4 +17,4 @@ echo "start client: \"$clientCmd\""
 
 #run commands
 gnome-terminal --geometry 70x30+-10+19 -e "$serverCmd"
-gnome-terminal --geometry 70x30+645+19 -e "$clientCmd"
+gnome-terminal --geometry 70x30+645+19 -e "$clientCmd"	

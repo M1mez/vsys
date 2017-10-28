@@ -25,6 +25,7 @@
 #include <ctime>
 #include <sstream>
 #include <time.h>
+#include <uuid/uuid.h>
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
@@ -33,7 +34,7 @@
 using namespace std;
 
 enum{READ, LIST, SEND, DEL, QUIT};
-enum{ISMESSAGE, NOMESSAGE, ONEORTWO};
+enum{ISMESSAGE, NOMESSAGE, ONEORTWO, NUMERIC};
 enum{INBOX=1, OUTBOX};
 typedef struct Information {
 	DIR* mStorageDir;
@@ -44,8 +45,10 @@ typedef struct Information {
 	string user;
 	string sender;
 	string receiver;
+	string subject;
 } Information;
 
+string genFileName(string counterPart, string subject);
 void listDir(Information *info, DIR *target);
 int chooseMode(char buffer[]);
 DIR *searchDir(Information *info, string name);
@@ -59,7 +62,6 @@ void deleteMessage(Information *info, string user, string fileName, int option);
 
 int main(int argc, char **argv){
 	srand(time(NULL));
-	//signal(SIGPIPE, SIG_IGN);
 	setbuf(stdin, NULL);
 	if(argc < 2){
 		printf("Please enter Port number and path!\n");
@@ -80,6 +82,8 @@ int main(int argc, char **argv){
 
     //directory
     string path(argv[2]);
+
+    //Manager man(string(argv[2]));
 
 	Information info;
 	info.path = string(argv[2]);
@@ -105,7 +109,11 @@ int main(int argc, char **argv){
 			strcpy(buffer,"Welcome. Please enter your command:\n");
 			send(info.newS,buffer,strlen(buffer),0);
 		}
+
 		do{
+			cout << info.newS << " " << info.createS << endl;
+
+			cout << genFileName("Johannes", "testedashIer") << endl;
 			size = recv(info.newS,buffer,1023,0);
 			if(size>0){
 				buffer[size] = '\0';
@@ -216,6 +224,7 @@ int main(int argc, char **argv){
 			        	cout << sendStep[0] + " " << sendStep[1] + " " << sendStep[2] << endl;
 			        	info.sender = sendStep[0];
 			        	info.receiver = sendStep[1];
+			        	info.subject = sendStep[2];
 
 			        	searchDir(&info, sendStep[0]);
 			        	searchDir(&info, sendStep[1]);
@@ -255,10 +264,11 @@ int main(int argc, char **argv){
 void listDir(Information *info, DIR *target) {
     struct dirent *mFile;
     vector<string> entries;
+    int incr = 0;
 
     while ((mFile=readdir(target))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
-        entries.push_back((string)mFile->d_name);
+        entries.push_back(to_string(++incr) + ". " +((string)mFile->d_name));
     }
     if (entries.empty()){
     	customMessage(info, "NO files where found!");
@@ -408,6 +418,10 @@ string rcvMessage(Information *info, int option){
 			if(tmp == "9") return "4";
 			return tmp;
 		}
+		case NUMERIC: {
+			if (strncasecmp(tmp.c_str(), "QUIT", 4) == 0) return "QUIT";
+			return tmp;
+		}
 		default: {
 			return "";
 		}
@@ -436,26 +450,24 @@ void customMessage(Information *info, string message){
 }
 
 void saveMessage(Information *info, vector<string> message){
-	
-/*
-	string senderUID = info->receiver;
-	string receiverUID = info->sender;
-	cout << senderUID;
 
-	string senderDir =   (string(info->path) + "/" + info->sender + "/outbox");
-	string receiverDir = (string(info->path) + "/" + info->receiver + "/inbox");
+	string senderUID = genFileName(info->receiver, info->subject);
+	string receiverUID = genFileName(info->sender, info->subject);
+
+	string senderDir =   (string(info->path) + "/" + info->sender + "/outbox/" + senderUID);
+	string receiverDir = (string(info->path) + "/" + info->receiver + "/inbox/" + receiverUID);
 	cout << senderDir;
 
 	FILE *senderFile = fopen(senderDir.c_str() ,"a");
 	FILE *receiverFile = fopen(receiverDir.c_str() ,"a");
 
 	for (string i : message){
-		fprintf(senderFile,   "%s\n", i.c_str());
-		fprintf(receiverFile, "%s\n", i.c_str());
+		fprintf(senderFile,   "%s", i.c_str());
+		fprintf(receiverFile, "%s", i.c_str());
 	}
 
 	fclose(senderFile);
-	fclose(receiverFile);*/
+	fclose(receiverFile);
 }
 
 
@@ -474,8 +486,16 @@ void deleteMessage(Information *info, string user, string fileName, int option){
 
 }
 
+string genFileName(string counterPart, string subject){
+	uuid_t uuid;
 
+    uuid_generate_random(uuid);
+    char uuid_str[9];
+    uuid_unparse_lower(uuid, uuid_str);
+    uuid_str[8] = '\0';
 
+    string nowTime = to_string(((long int)time(NULL))%1000);
+    string uuidStr(uuid_str);
 
-
-
+    return (counterPart + "-" + subject + "-" + uuidStr + "-" + nowTime + ".txt");
+}

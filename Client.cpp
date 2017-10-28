@@ -4,25 +4,25 @@
 	uid: if16b011 &  if16b042
 */
 
+#include <algorithm>
+#include <arpa/inet.h>
+#include <climits>
+#include <iostream>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <iostream>
-#include <algorithm>
-#include <climits>
 
 #define SNDBUFF 1024
 #define RCVBUFF 1023
 #define DELIMITER ".\n"
 
 enum{READ, LIST, SEND, DEL, QUIT};
-enum{ISMESSAGE, NOMESSAGE, ONEORTWO};
+enum{ISMESSAGE, NOMESSAGE, ONEORTWO, NUMERIC};
 
 bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType);
 int chooseMode(char buffer[]);
@@ -65,8 +65,8 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 
-	do {
-	   
+    int amountListed = -1;
+    do {
         printf("Type one of the following:\n  READ\n  LIST\n  SEND\n  DEL\n  QUIT\n");
         fgets(buffer,SNDBUFF,stdin);
         send(createSocket,buffer,strlen(buffer),0);
@@ -98,13 +98,14 @@ int main(int argc, char **argv){
             case LIST: {
                 memset(buffer,'\0',strlen(buffer));
                 printf("client list: \n\n");
-                cout << "Whose mails would you like to list? (Sender)" << endl;
+                cout << "Whose mails would you like to list? " << endl;
                     if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
                 cout << "1: List my inbox-entries!"  << endl;
                 cout << "2: List my outbox-entries!" << endl;
                 cout << "9: Quit to menu!" << endl;
                     if(sendMessage(createSocket, buffer,  1, ONEORTWO)) break;
                 do{
+                    amountListed++;
                     size = recv(createSocket,buffer,RCVBUFF,0);
                     buffer[size] = '\0';
                     if(strncmp(buffer,".\n",2) == 0) break;
@@ -135,14 +136,14 @@ int main(int argc, char **argv){
             case DEL: {
                 memset(buffer,'\0',strlen(buffer));
                 printf("client del\n");
-                cout << "User: ";
+                cout << "Whose file would you like to delete? " << endl;
                     if(sendMessage(createSocket, buffer, 8, NOMESSAGE)) break;
                 cout << "1: Delete an inbox  entry!"  << endl;
                 cout << "2: Delete an outbox entry!" << endl;
                 cout << "9: Quit to menu!" << endl;
                     if(sendMessage(createSocket, buffer,  1, ONEORTWO)) break;
                 cout << "Which Message do you want to delete?" << endl;
-                    if(sendMessage(createSocket, buffer, 20, NOMESSAGE)) break;
+                    if(sendMessage(createSocket, buffer, amountListed, NUMERIC)) break;
 
                 do{
                     size = recv(createSocket,buffer,RCVBUFF,0);
@@ -230,6 +231,29 @@ bool sendMessage(int createSocket, char buffer[], int maxInput, int messageType)
             buffer[0] =  tempNum + '0';
             buffer[1] = '\n';
             buffer[2] =  '\0';
+            send(createSocket,buffer,strlen(buffer),0);
+            break;
+        }
+        case NUMERIC: {
+            int tempNum;
+
+            memset(buffer,'0', SNDBUFF);
+            cin >> tempNum;
+            //fgets(buffer,SNDBUFF,stdin);
+            //buffer[strlen(buffer)] = '\0';
+            //string tmp(buffer);
+            /*if(tmp == "QUIT") {
+                cout << "Quit to menu..." << endl;
+                isQuit = true;
+            }*/
+
+            if (cin.fail() || tempNum <= 0 || tempNum > maxInput){
+                printf("Please enter a number greater than 0 or less than %d\n", maxInput+1);
+                isQuit = true;
+            }
+            strcpy(buffer,(isQuit ? "QUIT" : to_string(tempNum).c_str()));
+            //buffer = isQuit ? "QUIT" : (char*)to_string(tempNum).c_str();
+
             send(createSocket,buffer,strlen(buffer),0);
             break;
         }
