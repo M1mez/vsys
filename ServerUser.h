@@ -1,15 +1,16 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <cstring>
-#include <string>
 #include <dirent.h>
+#include <iostream>
+#include <netinet/in.h>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <netinet/in.h>
 #include <uuid/uuid.h>
 #include <vector>
-#include <algorithm>
+#include <fstream>
 
 #define DELIMITER ".\n"
 #define BUFFER 1024
@@ -20,10 +21,17 @@ enum{INBOX=1, OUTBOX};
 
 
 typedef struct Receiver{
-	std::string name;
 	std::string inbox;
+	std::string name;
 	std::string subject;
 } Rec_t;
+
+typedef struct Paths {
+	std::string inbox;
+	std::string outbox;
+	std::string mStorage;
+	std::string userPath;
+} Path_t;
 
 class ServerUser {
 public:
@@ -36,18 +44,22 @@ public:
 	int chooseMode(std::string str);
 	~ServerUser();
 private:
+	DIR *_userDIR;
+	DIR *changeDir(DIR *oldDIR, std::string path = "IchKluk");
+	DIR *searchDir();
 	int _socket;
-	std::string _userName;
-	std::string _path;
-	std::string _inbox;
-	std::string _outbox;
+	Path_t _user;
 	Rec_t _rec;
-	void setReceiver(std::string name);
+	std::string _userName;
 	std::string genFileName(std::string counterPart, std::string subject);
-	void deleteMessage(std::string fileName, int option);
-	void customMessage(std::string message);
-	void sendVector(std::vector<std::string> entries);
-	void stopSend();
-	void saveMessage(std::vector<std::string> message);
 	std::string rcvMessage(int option);
+	void customMessage(std::string message);
+	void deleteMessage(std::string fileName, int option);
+	void initFolders(std::string userName);
+	void listDir(int option);
+	void readFile(std::string fileName, int option);
+	void saveMessage(std::vector<std::string> message);
+	void sendVector(std::vector<std::string> entries);
+	void setReceiver(std::string name, std::string subject);
+	void stopSend();
 };
