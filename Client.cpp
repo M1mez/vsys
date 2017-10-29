@@ -55,18 +55,27 @@ int main(int argc, char **argv){
 
 	if(connect (createSocket, (struct sockaddr *) &address,sizeof(address)) == 0){
 		printf("Connected to server.\n");
-		size = recv(createSocket,buffer,RCVBUFF,0);
+		/*size = recv(createSocket,buffer,RCVBUFF,0);
 		if(size>0){
 			buffer[size]='\0';
 			printf("%s", buffer);
-		}
+		}*/
 	}else {
 		perror("Could not connect to server");
 		exit(EXIT_FAILURE);
 	}
 
+		cout << "USERNAME: "; 
+    	fgets(buffer,SNDBUFF,stdin); //userName
+        send(createSocket,buffer,strlen(buffer),0);
+
+    	cout << "PASSWORD: "; 
+        fgets(buffer,SNDBUFF,stdin); //password
+        send(createSocket,buffer,strlen(buffer),0);
+
     int amountListed = -1;
     do {
+    	
         printf("Type one of the following:\n  READ\n  LIST\n  SEND\n  DEL\n  QUIT\n");
         fgets(buffer,SNDBUFF,stdin);
         send(createSocket,buffer,strlen(buffer),0);
@@ -98,8 +107,6 @@ int main(int argc, char **argv){
             case LIST: {
                 memset(buffer,'\0',strlen(buffer));
                 printf("client list: \n\n");
-                cout << "Whose mails would you like to list? " << endl;
-                    if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
                 cout << "1: List my inbox-entries!"  << endl;
                 cout << "2: List my outbox-entries!" << endl;
                 cout << "9: Quit to menu!" << endl;

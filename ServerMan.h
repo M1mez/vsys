@@ -12,6 +12,7 @@ public:
 	Manager(std::string path);
 	ServerUser *addUser(int clientSocket);
 	void removeUser(ServerUser *user);
+	void switchLogic(int createSocket);
 	~Manager();
 	int _conSocket;
 private:

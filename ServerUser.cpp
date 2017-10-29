@@ -10,16 +10,17 @@ ServerUser::ServerUser(string userName, string path, int socket) :_userName(user
 	_user.inbox = path + userName + "/inbox/";
 	initFolders(userName);
 
-	cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
+	//cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
 
 	_userDIR = changeDir(NULL);
-	cout << "User " << _userName << " built up a connection!";
+	cout << "User " << _userName << " built up a connection!" << endl;
 
-	customMessage("Welcome. Please enter your command:\n");
+	string i = "Welcome. Please enter your command:\n";
+	send(_socket, i.c_str(), strlen(i.c_str()),0);
 }
 
 void ServerUser::switchREAD(){
-	cout << "User: " << _userName << " chose READ";
+	cout << "User: " << _userName << " chose READ" << endl;
 
 	string fileName;
 	int option;
@@ -45,7 +46,7 @@ void ServerUser::switchREAD(){
 }
 
 void ServerUser::switchLIST(){
-	cout << "User: " << _userName << " chose LIST";
+	cout << "User: " << _userName << " chose LIST" << endl;
 	
     int option;
     if ((option = stoi(rcvMessage(ONEORTWO))) != QUIT){
@@ -66,7 +67,7 @@ void ServerUser::switchLIST(){
 }
 
 void ServerUser::switchSEND(){
-	cout << "User: " << _userName << " chose LIST";
+	cout << "User: " << _userName << " chose SEND" << endl;
 
 	string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
 	string sendStep[2];
@@ -80,18 +81,18 @@ void ServerUser::switchSEND(){
 		rcvCount++;
 	}while(rcvCount < 2);
 
-	cout << sendStep[0] + " " << sendStep[1] + " " << sendStep[2] << endl;
+	cout << sendInfo[0] << sendStep[0] + " " << sendInfo[1] << sendStep[1];
 
 	setReceiver(sendStep[0], sendStep[1]);
 
 	rcvMessage(ISMESSAGE);
 
-	cout << "OUT Message saved in: " << _rec.inbox << endl;
-	cout << "IN  Message saved in: " << _user.outbox << endl;
+	cout << "IN Message saved in: " << _rec.inbox << endl;
+	cout << "OUT  Message saved in: " << _user.outbox << endl;
 }
 
 void ServerUser::switchDEL(){
-	cout << "User: " << _userName << " chose LIST";
+	cout << "User: " << _userName << " chose LIST" << endl;
 
 	int option;
 	string fileName;
@@ -160,6 +161,7 @@ void ServerUser::listDir(int option) {
     int incr = 0;
 	
 	DIR *toList = changeDir(_userDIR, ((option == INBOX) ? _user.inbox : _user.outbox));
+	cout << ((option == INBOX) ? _user.inbox : _user.outbox) << endl;
 
     while ((mFile=readdir(toList))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
@@ -207,9 +209,11 @@ void ServerUser::readFile(string fileName, int option) {
 string ServerUser::rcvMessage(int option){
 	char buffer[BUFFER-1] = {};
 	int size = recv(_socket,buffer,BUFFER-1,0);
+
 	buffer[size-1] = '\0';
 	string tmp(buffer);
 	memset(buffer, '\0', size);
+
 
 	switch(option){
 		case NOMESSAGE: {
@@ -247,7 +251,10 @@ string ServerUser::rcvMessage(int option){
 int ServerUser::chooseMode(){
 	string str = rcvMessage(NOMESSAGE);
 
-	std::transform(str.begin(), str.end(),str.begin(), ::toupper);
+	locale loc;
+	for (string::size_type i=0; i<str.length(); ++i)
+    str[i] = toupper(str[i],loc);
+
 	if(str == "READ") return READ;
 	if(str == "LIST") return LIST;
 	if(str == "SEND") return SEND;
@@ -284,13 +291,11 @@ void ServerUser::stopSend(){
 DIR *ServerUser::changeDir(DIR *oldDIR, string path){
 	if (oldDIR) closedir(oldDIR);
 
-	cout << path << endl << _user.userPath << endl; 
+	//cout << path << endl << _user.userPath << endl << "vllt hier?" << endl; 
 
-	cout << "hiervllt";
 	if (path == "IchKluk"){
 		path = _user.userPath;	
 	} 
-	cout << "dada?";
 
 	DIR *newDIR;
 	if((newDIR = opendir(path.c_str())) == NULL) {

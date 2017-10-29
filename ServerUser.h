@@ -12,11 +12,13 @@
 #include <vector>
 #include <fstream>
 #include <cerrno>
+#include <locale>
+#include <thread>
 
 #define DELIMITER ".\n"
 #define BUFFER 1024
 
-enum{INVALID = -1, READ, LIST, SEND, DEL, QUIT};
+enum{INVALID = -1, READ = 0, LIST, SEND, DEL, QUIT};
 enum{ISMESSAGE, NOMESSAGE, ONEORTWO, NUMERIC};
 enum{INBOX=1, OUTBOX};
 
@@ -44,6 +46,7 @@ public:
 	void switchQUIT();
 	int chooseMode();
 	~ServerUser();
+	std::string _userName;
 private:
 	DIR *_userDIR;
 	DIR *changeDir(DIR *oldDIR, std::string path = "IchKluk");
@@ -51,7 +54,6 @@ private:
 	int _socket;
 	Path_t _user;
 	Rec_t _rec;
-	std::string _userName;
 	std::string genFileName(std::string counterPart, std::string subject);
 	std::string rcvMessage(int option);
 	void customMessage(std::string message);

@@ -46,45 +46,22 @@ int main(int argc, char **argv){
 	
 	listen(man->_conSocket, 5);
 	addrlen = sizeof(struct sockaddr_in);
+
+	cout << "OPTIONS ARE: " << endl << " INVALID: " << INVALID << endl << " READ: " << READ << endl << " LIST " << LIST
+		 << endl << " SEND: " << SEND << endl << " DEL: " << DEL << endl << " QUIT: " << QUIT << endl;
 	
+	vector<thread*> th;
+
 	while(1){
 		printf("Waiting for connections. \n");
 
 		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&clientAddress, &addrlen);
-		ServerUser *client = man->addUser(clientSocket);
-		cout << "hierDRAUSSEN";
-		
-		do{
-			int option = client->chooseMode();
-			
-			if(option != INVALID){
-				buffer[size] = '\0';
 
-				switch(option) {
-			        case READ: {
-		                client->switchREAD();
-            		}
-			        case LIST: {
-			            client->switchLIST();
-			        }
-			        case SEND: {
-			        	client->switchSEND();
-			        }
-			        case DEL: {
-			            client->switchDEL();
-			        }
-			        case QUIT: {
-			        	printf("User quit his/her session. Waiting for new User.\n");
-			        	break;
-			        }
-			        default: {
-			            printf("No valid Input detected!\ntry:\n  READ\n  LIST\n  SEND\n  DEL\n");
-			            break;
-			        }
-				}
-			}
-		}while(strncasecmp(buffer,"quit",4) !=0);
-		man->removeUser(client);
+
+		man->switchLogic(clientSocket);
+
+		//thread hans(man->switchLogic, clientSocket);
+		
 	}
 	delete man;
 	return 0;
