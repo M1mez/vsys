@@ -18,44 +18,34 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 
-	printf("%s %s\n", argv[1],argv[2]);
+	int port = atoi(argv[1]);
+	string path = string(argv[2]);
+    Manager *man = new Manager(port, path);
 
-	int size;
-	char buffer[BUFFER];
-	struct sockaddr_in address;
-	struct sockaddr_in clientAddress;
-	socklen_t addrlen;
+	cout << "PORT: " << port << endl
+		 << "PATH: " << path << endl;
 
-    Manager *man = new Manager(string(argv[2]));
-
-    memset(&address,0,sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(atoi(argv[1]));
-
-	man->_conSocket = socket(AF_INET,SOCK_STREAM,0);
-
-	if(bind (man->_conSocket, (struct sockaddr *) &address, sizeof(address)) !=0){
+    if(bind (man->_conSocket, (struct sockaddr *) &man->address, sizeof(man->address)) !=0){
 		perror("bind_error");
 		exit(EXIT_FAILURE);
 	}
-
-
-	
-
 	
 	listen(man->_conSocket, 5);
-	addrlen = sizeof(struct sockaddr_in);
 
-	cout << "OPTIONS ARE: " << endl << " INVALID: " << INVALID << endl << " READ: " << READ << endl << " LIST " << LIST
-		 << endl << " SEND: " << SEND << endl << " DEL: " << DEL << endl << " QUIT: " << QUIT << endl;
+	cout << "OPTIONS ARE: " << endl 
+		 << " INVALID: " << INVALID << endl 
+		 <<  " READ: " << READ << endl 
+		 << " LIST " << LIST << endl 
+		 << " SEND: " << SEND << endl 
+		 << " DEL: " << DEL << endl 
+		 << " QUIT: " << QUIT << endl;
 	
 	vector<thread*> th;
 
 	while(1){
 		printf("Waiting for connections. \n");
 
-		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&clientAddress, &addrlen);
+		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&man->clientAddress, &man->addrlen);
 
 
 		man->switchLogic(clientSocket);

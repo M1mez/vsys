@@ -9,12 +9,15 @@
 
 class Manager {
 public:
-	Manager(std::string path);
+	Manager(int port, std::string path);
 	ServerUser *addUser(int clientSocket);
 	void removeUser(ServerUser *user);
 	void switchLogic(int createSocket);
 	~Manager();
 	int _conSocket;
+	struct sockaddr_in address;
+	struct sockaddr_in clientAddress;
+	socklen_t addrlen;
 private:
 	std::vector<ServerUser*> _users;
 	std::string _path;

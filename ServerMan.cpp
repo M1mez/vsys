@@ -2,8 +2,17 @@
 
 using namespace std;
 
-Manager::Manager(string path){
+Manager::Manager(int port, string path){
 	_path = path + "/mailStorage/";
+	memset(&address,0,sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(port);
+	addrlen = sizeof(struct sockaddr_in);
+
+	_conSocket = socket(AF_INET,SOCK_STREAM,0);
+
+
 
 }
 
