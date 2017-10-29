@@ -3,16 +3,19 @@
 using namespace std;
 
 ServerUser::ServerUser(string userName, string path, int socket) :_userName(userName), _socket(socket){
-	_user.mStorage=path;
-	_user.userPath = path + userName; 
+	
+	_user.mStorage = path;
+	_user.userPath = path + userName + "/"; 
 	_user.outbox = path + userName + "/outbox/";
 	_user.inbox = path + userName + "/inbox/";
 	initFolders(userName);
 
-	_userDIR = opendir(_user.userPath.c_str());
-	_user.outbox = path + userName + "/outbox/";
-	_user.inbox = path + userName + "/inbox/";
+	cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
+
+	_userDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!";
+
+	customMessage("Welcome. Please enter your command:\n");
 }
 
 void ServerUser::switchREAD(){
@@ -241,7 +244,9 @@ string ServerUser::rcvMessage(int option){
 	return "";
 }
 
-int ServerUser::chooseMode(string str){
+int ServerUser::chooseMode(){
+	string str = rcvMessage(NOMESSAGE);
+
 	std::transform(str.begin(), str.end(),str.begin(), ::toupper);
 	if(str == "READ") return READ;
 	if(str == "LIST") return LIST;
@@ -277,13 +282,25 @@ void ServerUser::stopSend(){
 }
 
 DIR *ServerUser::changeDir(DIR *oldDIR, string path){
-	closedir(oldDIR);
-	if (path == "IchKluk") path = _user.userPath;
-	return opendir(path.c_str());
+	if (oldDIR) closedir(oldDIR);
+
+	cout << path << endl << _user.userPath << endl; 
+
+	cout << "hiervllt";
+	if (path == "IchKluk"){
+		path = _user.userPath;	
+	} 
+	cout << "dada?";
+
+	DIR *newDIR;
+	if((newDIR = opendir(path.c_str())) == NULL) {
+		printf("Error happened in changeDir: %d\n", errno);
+		return NULL;
+	}else return newDIR;
 }
 
 void ServerUser::initFolders(string userName){
-	string target = _user.mStorage + userName;
+	string target = _user.mStorage + userName + "/";
 	if (mkdir(target.c_str(), 777) == 0){
 		mkdir((target + "/inbox").c_str(), 777);
 		mkdir((target + "/outbox").c_str(), 777);

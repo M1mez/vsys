@@ -2,13 +2,18 @@
 
 using namespace std;
 
-Manager::Manager(string path) : _path(path + "/mailStorage/"){
-	_mailStorageDir = opendir(_path.c_str());
-	_conSocket = socket(AF_INET,SOCK_STREAM,0);
+Manager::Manager(string path){
+	_path = path + "/mailStorage/";
+
 }
 
-ServerUser* Manager::addUser(string userName, int newSocket){
-	ServerUser *newUser = new ServerUser(userName, _path, newSocket);
+ServerUser* Manager::addUser(int clientSocket){
+	if(clientSocket > 0) printf("CONNECTED TO NEW CLIENT!\n");
+	else printf("ERROR IN CONNECTING TO CLIENT\n");
+
+	// TODO: VIELLEICHT statischer Username??
+
+	ServerUser *newUser = new ServerUser(to_string(clientSocket), _path, clientSocket);
 	_users.push_back(newUser);
 	return newUser;
 }

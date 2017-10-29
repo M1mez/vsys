@@ -10,12 +10,13 @@
 class Manager {
 public:
 	Manager(std::string path);
-	ServerUser *addUser(std::string userName, int newSocket);
+	ServerUser *addUser(int clientSocket);
 	void removeUser(ServerUser *user);
 	~Manager();
-private:
-	DIR *_mailStorageDir;
 	int _conSocket;
-	std::string _path;
+private:
 	std::vector<ServerUser*> _users;
+	std::string _path;
+	
+	char _buffer[BUFFER] = {};
 };

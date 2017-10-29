@@ -118,12 +118,10 @@ int main(int argc, char **argv){
             }
             case SEND: {
                 memset(buffer,'\0',strlen(buffer));
-                string sendInfo[4] = {"Sender: ", "Empfänger: ", "Betreff: ", "Nachricht:\n"};
+                string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
                 int sendCount = 0;
                 printf("Client send\n");
 
-                cout << sendInfo[sendCount++] << endl;
-                    if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
                 cout << sendInfo[sendCount++] << endl;
                     if(sendMessage(createSocket, buffer,  8, NOMESSAGE)) break;
                 cout << sendInfo[sendCount++] << endl;

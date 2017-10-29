@@ -11,6 +11,7 @@
 #include <uuid/uuid.h>
 #include <vector>
 #include <fstream>
+#include <cerrno>
 
 #define DELIMITER ".\n"
 #define BUFFER 1024
@@ -41,7 +42,7 @@ public:
 	void switchSEND();
 	void switchDEL();
 	void switchQUIT();
-	int chooseMode(std::string str);
+	int chooseMode();
 	~ServerUser();
 private:
 	DIR *_userDIR;
