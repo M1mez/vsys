@@ -1,15 +1,17 @@
 
-
 #include "ClientUser.h"
-
-enum{READ, LIST, SEND, DEL, QUIT};
-enum{ISMESSAGE, NOMESSAGE, ONEORTWO, NUMERIC};
 
 class Manager {
 public:
-	Manager();
-	ClientUser *createUser(int socket);
+	Manager(int port, std::string ip);
+	ClientUser *createUser();
+	void switchLogic();
 	~Manager();
 private:
+	ClientUser *_user;
 	int _conSocket;
+	int _port;
+	std::string _ip;
+	struct sockaddr_in _address;
+
 };

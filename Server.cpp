@@ -46,6 +46,7 @@ int main(int argc, char **argv){
 		printf("Waiting for connections. \n");
 
 		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&man->clientAddress, &man->addrlen);
+		//th.push_back(new thread(&Manager::switchLogic, man, clientSocket));
 
 
 		man->switchLogic(clientSocket);

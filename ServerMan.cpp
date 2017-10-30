@@ -11,9 +11,6 @@ Manager::Manager(int port, string path){
 	addrlen = sizeof(struct sockaddr_in);
 
 	_conSocket = socket(AF_INET,SOCK_STREAM,0);
-
-
-
 }
 
 ServerUser* Manager::addUser(int clientSocket){
@@ -62,6 +59,7 @@ void Manager::removeUser(ServerUser *user){
 void Manager::switchLogic(int createSocket){
 	ServerUser *client = addUser(createSocket);
 	int option; 
+	int failCounter = 0;
 
 	if (client == NULL){
 		return;
@@ -70,6 +68,8 @@ void Manager::switchLogic(int createSocket){
 	do{
 		option = client->chooseMode();
 		cout << "OPTION is " << option << endl;
+		failCounter = (option == INVALID) ? failCounter + 1 : 0;
+
 
 		switch(option) {
 	        case READ: {
@@ -96,8 +96,7 @@ void Manager::switchLogic(int createSocket){
 	            break;
 	        }
 		}
-		
-	}while(option != QUIT);
+	}while(option != QUIT && failCounter < 5);
 	removeUser(client);
 }
 

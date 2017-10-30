@@ -13,9 +13,9 @@
 #include <fstream>
 #include <cerrno>
 #include <locale>
-#include <thread>
 
 #define DELIMITER ".\n"
+#define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
 #define BUFFER 1024
 
 enum{INVALID = -1, READ = 0, LIST, SEND, DEL, QUIT};
@@ -52,6 +52,7 @@ private:
 	DIR *changeDir(DIR *oldDIR, std::string path = "IchKluk");
 	DIR *searchDir();
 	int _socket;
+	char _buffer[BUFFER];
 	Path_t _user;
 	Rec_t _rec;
 	std::string genFileName(std::string counterPart, std::string subject);
@@ -65,4 +66,5 @@ private:
 	void sendVector(std::vector<std::string> entries);
 	void setReceiver(std::string name, std::string subject);
 	void stopSend();
+	std::string rcvLogic();
 };

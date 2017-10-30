@@ -92,7 +92,7 @@ void ServerUser::switchSEND(){
 }
 
 void ServerUser::switchDEL(){
-	cout << "User: " << _userName << " chose LIST" << endl;
+	cout << "User: " << _userName << " chose DEL" << endl;
 
 	int option;
 	string fileName;
@@ -207,45 +207,46 @@ void ServerUser::readFile(string fileName, int option) {
 }
 
 string ServerUser::rcvMessage(int option){
-	char buffer[BUFFER-1] = {};
-	int size = recv(_socket,buffer,BUFFER-1,0);
-
-	buffer[size-1] = '\0';
-	string tmp(buffer);
-	memset(buffer, '\0', size);
-
+	string str = rcvLogic();
 
 	switch(option){
 		case NOMESSAGE: {
-			if((strncasecmp(tmp.c_str(), "QUIT", 4) == 0) || tmp == ".\n") {
+			if((strncasecmp(str.c_str(), "QUIT", 4) == 0)) {
 				return "QUIT";	
 			}
-			return tmp;
+			return str;
 		}
 		case ISMESSAGE: {
-			vector<string> newMessage;
+			vector<string> newMessage = {str};
 	    	do{
-	            size = recv(_socket,buffer,BUFFER-1,0);
-	            buffer[size] = '\0';
-	            printf("%s", buffer);
-	            newMessage.push_back((string)buffer);
-	        }while(strcmp(buffer,DELIMITER) != 0);	
+	            str = rcvLogic();
+	            newMessage.push_back(str);
+	        }while(str != DELIMITER);	
 	        saveMessage(newMessage);
 	        break;
 		}
 		case ONEORTWO: {
-			if(tmp == "9") return "4";
-			return tmp;
+			if(str == "9") return "4";
+			return str;
 		}
 		case NUMERIC: {
-			if (strncasecmp(tmp.c_str(), "QUIT", 4) == 0) return "QUIT";
-			return tmp;
+			if (strncasecmp(str.c_str(), "QUIT", 4) == 0) return "QUIT";
+			return str;
 		}
 		default: {
 			return "";
 		}
 	}
 	return "";
+}
+
+string ServerUser::rcvLogic(){
+	int size = recv(_socket,_buffer,BUFFER-1,0);
+	_buffer[size] = '\0';	
+	string str(_buffer);
+	cout << str;
+
+	return str;
 }
 
 int ServerUser::chooseMode(){
@@ -274,9 +275,10 @@ void ServerUser::saveMessage(vector<string> message){
 	FILE *senderFile = fopen(senderFilePath.c_str() ,"a");
 	FILE *receiverFile = fopen(receiverFilePath.c_str() ,"a");
 
+	message.pop_back();
 	for (string i : message){
-		fprintf(senderFile,   "%s", i.c_str());
-		fprintf(receiverFile, "%s", i.c_str());
+		fprintf(senderFile,   "%s\n", i.c_str());
+		fprintf(receiverFile, "%s\n", i.c_str());
 	}
 
 	fclose(senderFile);
@@ -291,7 +293,9 @@ void ServerUser::stopSend(){
 DIR *ServerUser::changeDir(DIR *oldDIR, string path){
 	if (oldDIR) closedir(oldDIR);
 
-	//cout << path << endl << _user.userPath << endl << "vllt hier?" << endl; 
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	cout << "Old working dir: " << string(cwd) << endl;
 
 	if (path == "IchKluk"){
 		path = _user.userPath;	
@@ -301,7 +305,11 @@ DIR *ServerUser::changeDir(DIR *oldDIR, string path){
 	if((newDIR = opendir(path.c_str())) == NULL) {
 		printf("Error happened in changeDir: %d\n", errno);
 		return NULL;
-	}else return newDIR;
+	}else {
+		getcwd(cwd, sizeof(cwd));
+		cout << "Current working dir: " << string(cwd) << endl;
+		return newDIR;
+	}
 }
 
 void ServerUser::initFolders(string userName){

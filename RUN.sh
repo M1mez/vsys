@@ -5,6 +5,15 @@ port=$(shuf -i 5000-9999 -n 1)
 serverCmd="bash -c \"$path/runServer $port $path\""
 clientCmd="bash -c \"$path/runClient $port $ip\""
 
+#multiscreen: if no arguments set, then single screen
+term1=0
+term2=650
+if [ $# -eq 1 ]
+ then
+  term1=1800
+  term2=2570
+fi
+
 #compile both files
 make
 
@@ -16,5 +25,5 @@ echo "start server: \"$serverCmd\""
 echo "start client: \"$clientCmd\""
 
 #run commands
-gnome-terminal --geometry 70x30+-10+19 -e "$serverCmd"
-gnome-terminal --geometry 70x30+645+19 -e "$clientCmd"	
+gnome-terminal --geometry 70x30+"$term1"+19 -e "$serverCmd"
+gnome-terminal --geometry 70x30+"$term2"+19 -e "$clientCmd"	
