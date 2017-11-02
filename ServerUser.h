@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 #include <dirent.h>
 #include <iostream>
 #include <netinet/in.h>
