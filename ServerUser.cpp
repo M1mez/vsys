@@ -10,11 +10,11 @@ ServerUser::ServerUser(string userName, string path, int socket) :_userName(user
 	_user.inbox = path + userName + "/inbox/";
 	initFolders(userName);
 
-	cout << EDGE;
-	cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
-	cout << EDGE;
+	//cout << EDGE;
+	//cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
+	//cout << EDGE;
 
-	_userDIR = changeDir(NULL);
+	_currentDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!" << endl;
 
 	string i = "Welcome. Please enter your command:\n";
@@ -151,8 +151,10 @@ void ServerUser::sendVector(vector<string> entries){
 	entries.push_back(edges);
 
 	for (string i : entries){
-		send(_socket, i.c_str(), strlen(i.c_str()),0);
-		rcvMessage(NOMESSAGE);
+		cout << "here"<< i <<endl;
+		/*send(_socket, i.c_str(), strlen(i.c_str()),0);
+		rcvMessage(NOMESSAGE);*/
+		sendLogic(i);
 	}
 	stopSend();
 }
@@ -162,18 +164,20 @@ void ServerUser::listDir(int option) {
     vector<string> entries;
     int incr = 0;
 	
-	DIR *toList = changeDir(_userDIR, ((option == INBOX) ? _user.inbox : _user.outbox));
-	cout << ((option == INBOX) ? _user.inbox : _user.outbox) << endl;
+	DIR *toList = changeDir(_currentDIR, ((option == INBOX) ? _user.inbox : _user.outbox));
+	cout << "listing: " << ((option == INBOX) ? "inbox" : "outbox") << endl << endl;
 
     while ((mFile=readdir(toList))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
-        entries.push_back(to_string(++incr) + ". " +((string)mFile->d_name));
+        entries.push_back(to_string(++incr) + ". " +((string)mFile->d_name) + '\n');
+        cout << string(mFile->d_name) << endl;
     }
+    cout << endl;
     if (entries.empty()){
     	customMessage("NO files where found!");
     }
     sendVector(entries);
-    changeDir(toList);
+    _currentDIR = changeDir(toList);
 }
 
 void ServerUser::readFile(string fileName, int option) {
@@ -181,7 +185,7 @@ void ServerUser::readFile(string fileName, int option) {
 	if(!(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
 
 	string targetPath = (option == INBOX) ? _user.inbox : _user.outbox;
-	DIR *target = changeDir(_userDIR, targetPath);
+	DIR *target = changeDir(_currentDIR, targetPath);
 	//DIR *target = opendir(targetPath.c_str());
 
 	while ((box=readdir(target)) != NULL){
@@ -207,12 +211,12 @@ void ServerUser::readFile(string fileName, int option) {
 			if(message.empty()) message.push_back("File was empty!");
 
 			sendVector(message);
-    		_userDIR = changeDir(target);
+    		_currentDIR = changeDir(target);
 			return;
         }
     }
     customMessage("That file was NOT found!");
-    _userDIR = changeDir(target);
+    _currentDIR = changeDir(target);
 }
 
 string ServerUser::rcvMessage(int option){
@@ -265,7 +269,9 @@ string ServerUser::rcvLogic(){
 
 void ServerUser::sendLogic(string message){
 	send(_socket,message.c_str(),message.length()+1,0);
+	cout << "nowwaiting" << endl;
 	recv(_socket,_buffer,BUFFER-1,0);
+	cout << "received DELIMITER" << endl;
 }
 
 int ServerUser::chooseMode(){
@@ -315,15 +321,25 @@ void ServerUser::stopSend(){
 }
 
 DIR *ServerUser::changeDir(DIR *oldDIR, string path){
-	if (oldDIR) closedir(oldDIR);
-
-	char cwd[1024];
-	getcwd(cwd, sizeof(cwd));
-	cout << "Old working dir: " << string(cwd) << endl;
 
 	if (path == "IchKluk"){
 		path = _user.userPath;	
 	} 
+
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	cout << "Old working dir: " << string(cwd) << endl;
+	cout << "New working dir: " << path << endl;
+	cout << path.length() << "<-new | old->" << string(cwd).length() << endl;
+
+	if (string(cwd) == path) {
+		cout << "same DIR, no need to change!" << endl;
+		return oldDIR;
+	}
+
+	if (oldDIR) closedir(oldDIR);
+
+	
 
 	DIR *newDIR;
 	if((newDIR = opendir(path.c_str())) == NULL) {
@@ -338,7 +354,7 @@ DIR *ServerUser::changeDir(DIR *oldDIR, string path){
 
 void ServerUser::initFolders(string userName){
 	string target = _user.mStorage + userName + "/";
-	if (mkdir(target.c_str(), 777) == 0){
+	if (mkdir(target.c_str(), 0777) == 0){
 		mkdir((target + "/inbox").c_str(), 777);
 		mkdir((target + "/outbox").c_str(), 777);
 	}

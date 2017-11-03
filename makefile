@@ -31,5 +31,5 @@ ClientMan.o: ClientMan.cpp ClientMan.h
 
 #clean -----------------------------------------
 clean:
-	rm *.o runServer
-	rm *.o runClient
+	rm -f *.o runServer
+	rm -f *.o runClient

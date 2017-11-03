@@ -49,6 +49,7 @@ public:
 	~ServerUser();
 	std::string _userName;
 private:
+	DIR *_currentDIR;
 	DIR *_userDIR;
 	DIR *changeDir(DIR *oldDIR, std::string path = "IchKluk");
 	DIR *searchDir();

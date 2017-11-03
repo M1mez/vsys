@@ -115,14 +115,18 @@ int ClientUser::chooseMode(){
 }
 
 void ClientUser::rcvVector(){
-	string str;
+	string str = {};
 	do{
+		cout << "here" << endl;
         str = rcvLogic();
-        	if(str == DELIMITER) break;
-        cout << str;
-        stopSend();
+        	if(str == DELIMITER) {
+        		cout << "whybreak?" << endl;
+        		break;
+        	}
+        cout << str << endl;
+        //stopSend();
     }while(str != DELIMITER);  
-        stopSend();
+        //stopSend();
 }
 
 bool ClientUser::sendMessage(int maxInput, int messageType){
