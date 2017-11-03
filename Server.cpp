@@ -13,19 +13,15 @@ int main(int argc, char **argv){
 	srand(time(NULL));
 	setbuf(stdin, NULL);
 
-	/*if(argc < 2){
+	if(argc < 3){
 		printf("Please enter Port number and path!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	bool portFirst = true;
-	while
+	bool portFirst = isdigit(argv[1][0]);
 
 	int port = portFirst ? atoi(argv[1]) : atoi(argv[2]);
-	string path = portFirst ? string(argv[2]) : string(argv[1]);*/
-
-	int port = atoi(argv[1]);
-	string path = string(argv[2]);
+	string path = portFirst ? string(argv[2]) : string(argv[1]);
 
     Manager *man = new Manager(port, path);
 
@@ -41,7 +37,7 @@ int main(int argc, char **argv){
 
 	cout << "OPTIONS ARE: " << endl 
 		 << " INVALID: " << INVALID << endl 
-		 <<  " READ: " << READ << endl 
+		 << " READ: " << READ << endl 
 		 << " LIST " << LIST << endl 
 		 << " SEND: " << SEND << endl 
 		 << " DEL: " << DEL << endl 

@@ -39,6 +39,6 @@ private:
 	void stopSend();
 	int _socket;
 	bool sendMessage(int maxInput, int messageType);
-	std::string rcvMessage();
+	std::string rcvLogic();
 	std::string _name;
 };

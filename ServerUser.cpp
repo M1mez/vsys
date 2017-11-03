@@ -10,7 +10,9 @@ ServerUser::ServerUser(string userName, string path, int socket) :_userName(user
 	_user.inbox = path + userName + "/inbox/";
 	initFolders(userName);
 
-	//cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
+	cout << EDGE;
+	cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
+	cout << EDGE;
 
 	_userDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!" << endl;
@@ -192,7 +194,14 @@ void ServerUser::readFile(string fileName, int option) {
         	string doneRead;
 
 			file.open(filePath);
-			while(getline(file,doneRead)) message.push_back(doneRead);
+			while(getline(file,doneRead)) {
+				doneRead += '\n';
+				cout << doneRead;
+				message.push_back(doneRead);
+			}
+			//getline(file,doneRead);
+			//message.push_back(doneRead);
+
 			file.close();
 
 			if(message.empty()) message.push_back("File was empty!");
@@ -208,7 +217,7 @@ void ServerUser::readFile(string fileName, int option) {
 
 string ServerUser::rcvMessage(int option){
 	string str = rcvLogic();
-
+	
 	switch(option){
 		case NOMESSAGE: {
 			if((strncasecmp(str.c_str(), "QUIT", 4) == 0)) {
@@ -217,11 +226,14 @@ string ServerUser::rcvMessage(int option){
 			return str;
 		}
 		case ISMESSAGE: {
-			vector<string> newMessage = {str};
+			vector<string> newMessage;
+	        newMessage.push_back(str);
+
 	    	do{
 	            str = rcvLogic();
 	            newMessage.push_back(str);
-	        }while(str != DELIMITER);	
+	        }while(str != ".");	
+	        newMessage.erase(newMessage.begin());
 	        saveMessage(newMessage);
 	        break;
 		}
@@ -244,9 +256,16 @@ string ServerUser::rcvLogic(){
 	int size = recv(_socket,_buffer,BUFFER-1,0);
 	_buffer[size] = '\0';	
 	string str(_buffer);
-	cout << str;
+	//str += '\n';
+	//cout << str;
+	stopSend();
 
 	return str;
+}
+
+void ServerUser::sendLogic(string message){
+	send(_socket,message.c_str(),message.length()+1,0);
+	recv(_socket,_buffer,BUFFER-1,0);
 }
 
 int ServerUser::chooseMode(){
@@ -266,6 +285,10 @@ int ServerUser::chooseMode(){
 
 void ServerUser::saveMessage(vector<string> message){
 
+	transform(_rec.subject.begin(), _rec.subject.end(), _rec.subject.begin(), [](char ch) {
+    	return ch == ' ' ? '_' : ch;
+	});
+
 	string senderUID = genFileName(_rec.name, _rec.subject);
 	string receiverUID = genFileName(_userName, _rec.subject);
 
@@ -276,6 +299,7 @@ void ServerUser::saveMessage(vector<string> message){
 	FILE *receiverFile = fopen(receiverFilePath.c_str() ,"a");
 
 	message.pop_back();
+
 	for (string i : message){
 		fprintf(senderFile,   "%s\n", i.c_str());
 		fprintf(receiverFile, "%s\n", i.c_str());

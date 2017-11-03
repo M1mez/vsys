@@ -117,9 +117,9 @@ int ClientUser::chooseMode(){
 void ClientUser::rcvVector(){
 	string str;
 	do{
-        str = rcvMessage();
+        str = rcvLogic();
         	if(str == DELIMITER) break;
-        cout << str << endl;
+        cout << str;
         stopSend();
     }while(str != DELIMITER);  
         stopSend();
@@ -133,12 +133,12 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
     switch(messageType){
         case ISMESSAGE: {
             do{
-            	cin >> str;
+            	getline(cin, str);
                 if(str.length() > maxInput+1){
                     cout << "Line too long! Please stay under" << maxInput << "signs!" << endl;
                     continue;
                 }
-                sendLogic((str == ".") ? DELIMITER : str);
+                sendLogic(str);
             }while(str != ".");  
             break;
         }
@@ -196,6 +196,7 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
 
 void ClientUser::sendLogic(string message){
 	send(_socket,message.c_str(),message.length()+1,0);
+	recv(_socket,_buffer,BUFFER-1,0);
 }
 
 void ClientUser::stopSend(){
@@ -211,10 +212,12 @@ bool ClientUser::stringCompare(string src, string tar){
 	return src == tar;
 }
 
-string ClientUser::rcvMessage(){
+string ClientUser::rcvLogic(){
 	int size = recv(_socket,_buffer,BUFFER-1,0);
     _buffer[size] = '\0';
     string str(_buffer);
+    stopSend();
+
     return str;
 }
 

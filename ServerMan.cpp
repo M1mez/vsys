@@ -32,15 +32,16 @@ ServerUser* Manager::addUser(int clientSocket){
 	do{
 		if (checkCount == 3) return NULL;
 		checkCount++;
-		size = recv(clientSocket,buffer,BUFFER-1,0);
-		buffer[size-1] = '\0';
-		userName = string(buffer);
-		memset(buffer, '\0', size);
 
 		size = recv(clientSocket,buffer,BUFFER-1,0);
-		buffer[size-1] = '\0';
+		buffer[size-1] = '\0';	
+		userName = string(buffer);
+		send(clientSocket, DELIMITER, strlen(DELIMITER),0);
+
+		size = recv(clientSocket,buffer,BUFFER-1,0);
+		buffer[size-1] = '\0';	
 		userPass = string(buffer);
-		memset(buffer, '\0', size);
+		send(clientSocket, DELIMITER, strlen(DELIMITER),0);
 
 		cout << "userName: " << userName << ", userPass: " << userPass << endl;
 		validCred = true; 

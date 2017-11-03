@@ -67,5 +67,6 @@ private:
 	void sendVector(std::vector<std::string> entries);
 	void setReceiver(std::string name, std::string subject);
 	void stopSend();
+	void sendLogic(std::string message);
 	std::string rcvLogic();
 };
