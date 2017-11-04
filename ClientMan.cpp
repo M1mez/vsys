@@ -35,16 +35,19 @@ void Manager::switchLogic(){
 	int failCounter = 0;
 	int option;
 	do {
-    	cout << "Type one of the following:" << endl
+    	cout << "##########################" << endl
+	         << "Type one of the following:" << endl
     		 << "READ" << endl
     		 << "LIST" << endl
     		 << "SEND" << endl
     		 << "DEL"  << endl
-    		 << "QUIT" << endl;
+    		 << "QUIT" << endl
+    		 << "########" << endl;
         
         option = _user->chooseMode();
         failCounter = (option == INVALID) ? failCounter + 1 : 0;
 
+        clearScreen();
 
 		switch(option) {
             case READ: {
@@ -64,7 +67,6 @@ void Manager::switchLogic(){
                 break;
             }
             case QUIT: { 
-                close(_conSocket);
                 break;
             }
             default: {
@@ -86,6 +88,17 @@ void Manager::switchLogic(){
 ClientUser *Manager::createUser(){
 	_user = new ClientUser(_conSocket);
 	return _user;
+}
+
+
+void Manager::clearScreen(){
+		// Assume WINDOWS
+	#ifdef WINDOWS
+		system("cls");
+	#else
+		// Assume POSIX
+		system ("clear");
+	#endif
 }
 
 Manager::~Manager(){

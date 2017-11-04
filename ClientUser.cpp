@@ -30,12 +30,13 @@ void ClientUser::switchREAD(){
 	if(sendMessage(1, ONEORTWO)) return;
 
 	cout << "Name a file!" << endl;
-	if(sendMessage(8, NOMESSAGE)) return;
+	if(sendMessage(80, NOMESSAGE)) return;
 
     rcvVector();
+    cout << EDGE << "MESSAGE END" << endl;
 }
 
-void ClientUser::switchLIST(){
+void ClientUser::switchLIST(){ //CHECK
 	cout << "LIST:" << endl << EDGE;
 
 
@@ -44,7 +45,9 @@ void ClientUser::switchLIST(){
     cout << "9: Quit to menu!" << endl;
 
     if(sendMessage(1, ONEORTWO)) return;
+    cout << EDGE << "LISTING MESSAGES:" << endl << endl;
     rcvVector();
+    cout << EDGE;
 }
 
 void ClientUser::switchSEND(){ //CHECK
@@ -89,7 +92,7 @@ void ClientUser::switchDEL(){
 }
 
 void ClientUser::switchQUIT(){
-	cout << "QUIT:" << endl << EDGE;
+	//cout << "QUIT:" << endl << EDGE;
 
 
 }
@@ -114,20 +117,7 @@ int ClientUser::chooseMode(){
 	return INVALID;
 }
 
-void ClientUser::rcvVector(){
-	string str = {};
-	do{
-		cout << "here" << endl;
-        str = rcvLogic();
-        	if(str == DELIMITER) {
-        		cout << "whybreak?" << endl;
-        		break;
-        	}
-        cout << str << endl;
-        //stopSend();
-    }while(str != DELIMITER);  
-        //stopSend();
-}
+
 
 bool ClientUser::sendMessage(int maxInput, int messageType){
     size_t nameSize;
@@ -164,7 +154,7 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
             int tempNum;
             do{
             	cin >> tempNum;
-            	cout << "INPUT: " << tempNum << endl;
+            	//cout << "INPUT: " << tempNum << endl;
 
                 if(tempNum == 9) {
                     cout << "Quit to menu..." << endl;
@@ -189,7 +179,7 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
                 isQuit = true;
             }
             strcpy(buffer,(isQuit ? "QUIT" : to_string(tempNum).c_str()));
-            //buffer = isQuit ? "QUIT" : (char*)to_string(tempNum).c_str();
+            //buffer = isQuit ? "QUIT" : (char*	)to_string(tempNum).c_str();
 
             send(_socket,buffer,strlen(buffer),0);
             break;
@@ -199,14 +189,14 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
 }
 
 void ClientUser::sendLogic(string message){
-	send(_socket,message.c_str(),message.length()+1,0);
-	recv(_socket,_buffer,BUFFER-1,0);
+	send(_socket,message.c_str(),strlen(message.c_str())+1,0);
+	recv(_socket,_buffer,BUFFER+1,0);
 }
 
-void ClientUser::stopSend(){
+/*void ClientUser::stopSend(){
 
 	send(_socket, DELIMITER, strlen(DELIMITER),0);
-}
+}*/
 
 bool ClientUser::stringCompare(string src, string tar){
 	locale loc;
@@ -216,15 +206,46 @@ bool ClientUser::stringCompare(string src, string tar){
 	return src == tar;
 }
 
-string ClientUser::rcvLogic(){
+void ClientUser::rcvVector(){
+	/*memset(_buffer, 0, BUFFER);
 	int size = recv(_socket,_buffer,BUFFER-1,0);
-    _buffer[size] = '\0';
-    string str(_buffer);
-    stopSend();
+
+	printf("HIER %s HIER\n",_buffer );*/
+
+	string str = {};
+	//cout << EDGE;
+	do{
+		//cout << "here" << endl;
+        str = rcvLogic();
+        	if(str == DELIMITER) {
+        		//cout << "whybreak?" << endl;
+        		break;
+        	}
+        cout << str;
+        //stopSend();
+    }while(str != DELIMITER);  
+        //stopSend();
+    //cout << EDGE;
+}
+
+string ClientUser::rcvLogic(){
+	//cout << "waiting" << endl;
+	memset(_buffer, 0, BUFFER);
+	int size = recv(_socket,_buffer,BUFFER-1,0);
+	//sleep(1);
+	if (size == -1 ) {
+		cout << "ERROR IN RECEIVE" << endl;
+    	cout << strerror(errno) << endl;
+    }
+    //_buffer[size] = '\0';
+    string str = string(_buffer);
+    //cout << "_" << str << "_";
+    //cout << "got: " << str << "_" << endl;
+    send(_socket, DELIMITER, strlen(DELIMITER),0);
 
     return str;
 }
 
 ClientUser::~ClientUser(){
-
+	close(_socket);
 }

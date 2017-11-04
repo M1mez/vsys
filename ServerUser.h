@@ -16,7 +16,7 @@
 #include <locale>
 
 #define DELIMITER ".\n"
-#define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+#define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~"
 #define BUFFER 1024
 
 enum{INVALID = -1, READ = 0, LIST, SEND, DEL, QUIT};

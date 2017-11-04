@@ -3,7 +3,7 @@ ip=127.0.0.1 #`ifconfig wlo1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1
 path=`pwd`
 port=$(shuf -i 5000-9999 -n 1)
 serverCmd="bash -c \"valgrind --leak-check=yes $path/runServer $port $path\""
-clientCmd="bash -c \"valgrind --leak-check=yes $path/runClient $port $ip\""
+clientCmd="bash -c \"valgrind --leak-check=full $path/runClient $port $ip\""
 
 #multiscreen: if no arguments set, then single screen
 term1=0

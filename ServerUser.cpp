@@ -17,8 +17,8 @@ ServerUser::ServerUser(string userName, string path, int socket) :_userName(user
 	_currentDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!" << endl;
 
-	string i = "Welcome. Please enter your command:\n";
-	send(_socket, i.c_str(), strlen(i.c_str()),0);
+	//string i = "Welcome. Please enter your command:\n";
+	//send(_socket, i.c_str(), strlen(i.c_str()),0);
 }
 
 void ServerUser::switchREAD(){
@@ -26,10 +26,9 @@ void ServerUser::switchREAD(){
 
 	string fileName;
 	int option;
-    bool isQuit = false;
 
-    if ((option = stoi(rcvMessage(ONEORTWO))) == QUIT) isQuit = true;
-    else if ((fileName = rcvMessage(NOMESSAGE)) == "QUIT") isQuit = true;
+    option = stoi(rcvMessage(ONEORTWO));
+    if ((fileName = rcvMessage(NOMESSAGE)) == "QUIT") option = QUIT;
 	else {
 		readFile(fileName, option);
 		return;
@@ -99,10 +98,23 @@ void ServerUser::switchDEL(){
 	int option;
 	string fileName;
 
-    if(option = stoi(rcvMessage(ONEORTWO)) == QUIT) return;
-    if((fileName = rcvMessage(NOMESSAGE)) == "QUIT") return;
+    option = stoi(rcvMessage(ONEORTWO));
+    if((fileName = rcvMessage(NOMESSAGE)) == "QUIT") option = QUIT;
+    else {
+	    deleteMessage(fileName, option);
+    	return;
+    }
 
-    deleteMessage(fileName, option);
+    switch(option){
+    	case QUIT: {
+    		cout << "User chose to quit to menu!" << endl;
+    		break;
+    	}
+    	default: {
+    		cout << "ERROR IN SERVER LIST" << endl;
+    		break;
+    	}
+    }
 }
 
 void ServerUser::setReceiver(string name, string subject){
@@ -143,20 +155,6 @@ void ServerUser::customMessage(string message){
 	vector<string> v;
 	v.push_back(message);
 	sendVector(v);
-}
-
-void ServerUser::sendVector(vector<string> entries){
-	string edges = "~~~~~~~~~~~~~~~\n";
-	entries.insert(entries.begin(),edges);
-	entries.push_back(edges);
-
-	for (string i : entries){
-		cout << "here"<< i <<endl;
-		/*send(_socket, i.c_str(), strlen(i.c_str()),0);
-		rcvMessage(NOMESSAGE);*/
-		sendLogic(i);
-	}
-	stopSend();
 }
 
 void ServerUser::listDir(int option) {
@@ -256,22 +254,44 @@ string ServerUser::rcvMessage(int option){
 	return "";
 }
 
+void ServerUser::sendVector(vector<string> entries){
+	//string edges = "~~~~~~~~~~~~~~~\n";
+	//entries.insert(entries.begin(),EDGE);
+	//entries.push_back(EDGE+'\n');
+
+	//sendLogic(EDGE);
+	for (string i : entries){
+		cout << "HERE " << i << " HERE" << endl;
+		sendLogic(i);
+	}
+	//sleep(1);
+	//sendLogic(EDGE+'\n');
+	sendLogic(DELIMITER);
+}
+
 string ServerUser::rcvLogic(){
 	int size = recv(_socket,_buffer,BUFFER-1,0);
-	_buffer[size] = '\0';	
+	//_buffer[size] = '\0';	
 	string str(_buffer);
 	//str += '\n';
 	//cout << str;
+	cout << "GOT THIS IN RCV: " << str << "_" << endl;
 	stopSend();
 
 	return str;
 }
 
 void ServerUser::sendLogic(string message){
-	send(_socket,message.c_str(),message.length()+1,0);
+	//cout << message << endl;
+	memset(_buffer, 0, BUFFER);
+	cout << "sending: " << message << "_" << endl;
+	if (send(_socket,message.c_str(),strlen(message.c_str())+1,0) == -1){
+		cout << "HERE WAS ERROR IN SENDLOGIC!!!!" << endl;
+		cout << strerror(errno);
+	}
 	cout << "nowwaiting" << endl;
 	recv(_socket,_buffer,BUFFER-1,0);
-	cout << "received DELIMITER" << endl;
+	//cout << "received DELIMITER" << endl;
 }
 
 int ServerUser::chooseMode(){

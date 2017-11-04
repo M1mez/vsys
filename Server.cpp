@@ -43,18 +43,17 @@ int main(int argc, char **argv){
 		 << " DEL: " << DEL << endl 
 		 << " QUIT: " << QUIT << endl;
 	
-	vector<thread*> th;
+	vector<thread> th;
 
 	while(1){
 		printf("Waiting for connections. \n");
 
 		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&man->clientAddress, &man->addrlen);
-		//th.push_back(new thread(&Manager::switchLogic, man, clientSocket));
+		
+		//man->switchLogic(clientSocket);
 
+		th.push_back(thread(&Manager::switchLogic, man, clientSocket));
 
-		man->switchLogic(clientSocket);
-
-		//thread hans(man->switchLogic, clientSocket);
 		
 	}
 	delete man;

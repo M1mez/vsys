@@ -13,5 +13,6 @@ private:
 	int _port;
 	std::string _ip;
 	struct sockaddr_in _address;
+	void clearScreen();
 
 };
