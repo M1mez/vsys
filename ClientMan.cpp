@@ -85,12 +85,6 @@ void Manager::switchLogic(){
 }
 
 
-ClientUser *Manager::createUser(){
-	_user = new ClientUser(_conSocket);
-	return _user;
-}
-
-
 void Manager::clearScreen(){
 		// Assume WINDOWS
 	#ifdef WINDOWS

@@ -33,7 +33,9 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 	
-	listen(man->_conSocket, 5);
+	if (listen(man->_conSocket, 5) < 0) {
+
+	}
 
 	cout << "OPTIONS ARE: " << endl 
 		 << " INVALID: " << INVALID << endl 
@@ -45,7 +47,7 @@ int main(int argc, char **argv){
 	
 	vector<thread> th;
 
-	while(1){
+	do{
 		printf("Waiting for connections. \n");
 
 		int clientSocket = accept(man->_conSocket, (struct sockaddr *)&man->clientAddress, &man->addrlen);
@@ -55,7 +57,7 @@ int main(int argc, char **argv){
 		th.push_back(thread(&Manager::switchLogic, man, clientSocket));
 
 		
-	}
+	}while(th.size() > 0);
 	delete man;
 	return 0;
 }
