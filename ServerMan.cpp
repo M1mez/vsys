@@ -67,11 +67,8 @@ void Manager::switchLogic(int createSocket){
 	}
 
 	do{
-		cout << "BACKAGAIN" << endl << endl;
 		option = client->chooseMode();
-		cout << "OPTION is " << option << endl;
 		failCounter = (option == INVALID) ? failCounter + 1 : 0;
-
 
 		switch(option) {
 	        case READ: {

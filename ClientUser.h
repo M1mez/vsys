@@ -35,6 +35,7 @@ public:
 	~ClientUser();
 private:
 	void sendLogic(std::string message);
+	bool sendFile();
 	char _buffer[BUFFER] = {};
 	void stopSend();
 	int _socket;

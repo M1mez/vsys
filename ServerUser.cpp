@@ -70,7 +70,7 @@ void ServerUser::switchLIST(){
 void ServerUser::switchSEND(){
 	cout << "User: " << _userName << " chose SEND" << endl;
 
-	string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
+	//string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
 	string sendStep[2];
 	int rcvCount = 0;
 
@@ -78,11 +78,11 @@ void ServerUser::switchSEND(){
 		if ((sendStep[rcvCount] = rcvMessage(NOMESSAGE)) == "QUIT"){
 			return;
 		}
-		cout << sendInfo[rcvCount] << sendStep[rcvCount] << endl;
+		//cout << sendInfo[rcvCount] << sendStep[rcvCount] << endl;
 		rcvCount++;
 	}while(rcvCount < 2);
 
-	cout << sendInfo[0] << sendStep[0] + " " << sendInfo[1] << sendStep[1];
+	//cout << sendInfo[0] << sendStep[0] + " " << sendInfo[1] << sendStep[1];
 
 	setReceiver(sendStep[0], sendStep[1]);
 
@@ -163,14 +163,14 @@ void ServerUser::listDir(int option) {
     int incr = 0;
 	
 	DIR *toList = changeDir(_currentDIR, ((option == INBOX) ? _user.inbox : _user.outbox));
-	cout << "listing: " << ((option == INBOX) ? "inbox" : "outbox") << endl << endl;
+	//cout << "listing: " << ((option == INBOX) ? "inbox" : "outbox") << endl << endl;
 
     while ((mFile=readdir(toList))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
         entries.push_back(to_string(++incr) + ". " +((string)mFile->d_name) + '\n');
         cout << string(mFile->d_name) << endl;
     }
-    cout << endl;
+    //cout << endl;
     if (entries.empty()){
     	customMessage("NO files where found!");
     }
@@ -261,7 +261,7 @@ void ServerUser::sendVector(vector<string> entries){
 
 	//sendLogic(EDGE);
 	for (string i : entries){
-		cout << "HERE " << i << " HERE" << endl;
+		//cout << "HERE " << i << " HERE" << endl;
 		sendLogic(i);
 	}
 	//sleep(1);
@@ -275,7 +275,7 @@ string ServerUser::rcvLogic(){
 	string str(_buffer);
 	//str += '\n';
 	//cout << str;
-	cout << "GOT THIS IN RCV: " << str << "_" << endl;
+	//cout << "GOT THIS IN RCV: " << str << "_" << endl;
 	stopSend();
 
 	return str;
@@ -284,12 +284,12 @@ string ServerUser::rcvLogic(){
 void ServerUser::sendLogic(string message){
 	//cout << message << endl;
 	memset(_buffer, 0, BUFFER);
-	cout << "sending: " << message << "_" << endl;
+	//cout << "sending: " << message << "_" << endl;
 	if (send(_socket,message.c_str(),strlen(message.c_str())+1,0) == -1){
 		cout << "HERE WAS ERROR IN SENDLOGIC!!!!" << endl;
 		cout << strerror(errno);
 	}
-	cout << "nowwaiting" << endl;
+	//cout << "nowwaiting" << endl;
 	recv(_socket,_buffer,BUFFER-1,0);
 	//cout << "received DELIMITER" << endl;
 }
@@ -348,10 +348,7 @@ DIR *ServerUser::changeDir(DIR *oldDIR, string path){
 
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
-	cout << "Old working dir: " << string(cwd) << endl;
-	cout << "New working dir: " << path << endl;
-	cout << path.length() << "<-new | old->" << string(cwd).length() << endl;
-
+	
 	if (string(cwd) == path) {
 		cout << "same DIR, no need to change!" << endl;
 		return oldDIR;
@@ -378,6 +375,10 @@ void ServerUser::initFolders(string userName){
 		mkdir((target + "/inbox").c_str(), 777);
 		mkdir((target + "/outbox").c_str(), 777);
 	}
+}
+
+void ServerUser::receiveFile(){
+	
 }
 
 ServerUser::~ServerUser(){

@@ -53,6 +53,8 @@ void ClientUser::switchLIST(){ //CHECK
 void ClientUser::switchSEND(){ //CHECK
 	cout << "SEND:" << endl << EDGE;
 
+	sendFile();
+
 	string str;
     string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
     int sendCount = 0;
@@ -244,6 +246,58 @@ string ClientUser::rcvLogic(){
     send(_socket, DELIMITER, strlen(DELIMITER),0);
 
     return str;
+}
+
+bool ClientUser::sendFile(){
+	memset(_buffer, '\0', BUFFER);
+
+
+	vector<vector<char>> fileData;
+	vector<int> fileBytes;
+	int readCount = 0;
+	int readSize = 0;
+	FILE *file;
+	char *tempChunk = (char*) malloc(sizeof(char)*BUFFER);
+
+	int fehler = 1;
+
+	string filePath = "/media/fejo/Daten/FH/vsys/tryFileSend/testest.png";
+	file = fopen(filePath.c_str(), "r");
+	cout << "Anfang READ " << fehler++ << endl << endl;
+	do{
+		readSize = fread(tempChunk, sizeof(char), BUFFER, file);
+		vector<char> v(tempChunk, tempChunk+readSize);
+
+		fileBytes.push_back(readSize);
+		fileData.push_back(v);
+
+		cout << "Fehler " << fehler++ << fileBytes[readCount] << endl;
+	}while(fileBytes[readCount++] > 0);
+		cout << "ENDE READ" << endl << endl;
+	fclose(file);
+
+
+	
+
+	string newPath = "/media/fejo/Daten/FH/vsys/tryFileReceive/testest.png";
+	file = fopen(newPath.c_str(), "a");
+	int chunkCount = 0;
+	cout << "Anfang WRITE " << fehler++ << endl << endl;
+	do{
+		memset(tempChunk, 0, fileBytes[chunkCount]);
+		tempChunk = fileData[chunkCount].data();
+
+		fwrite(tempChunk, sizeof(char), fileBytes[chunkCount], file);
+		cout << "Fehler " << fehler++ << " " << chunkCount << endl;
+		chunkCount++;
+	}while (chunkCount < readCount);
+		cout << "ENDE WRITE " << fehler++ << endl << endl;
+	fclose(file);
+
+	free(tempChunk);
+
+	return true;
+
 }
 
 ClientUser::~ClientUser(){
