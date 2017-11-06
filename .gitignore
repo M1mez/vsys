@@ -5,3 +5,4 @@
 !mailStorage/*
 !.gitignore
 !makefile
+!ldaptest.cpp

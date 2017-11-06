@@ -94,15 +94,13 @@ do
 {
 		cout << "Username: ";
 		cin >> inputName;
-
-	
 }
 while(loginLDAP(inputName) != EXIT_SUCCESS && loginFailCount--);
 
 if(loginFailCount < 0)
 {
 	//send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
-	return NULL;
+	return EXIT_FAILURE;
 }
 
 send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
