@@ -25,25 +25,21 @@ void ServerUser::switchREAD(){
 	cout << "User: " << _userName << " chose READ" << endl;
 
 	string fileName;
-	int option;
+	int option, fileIndex;
 
-    option = stoi(rcvMessage(ONEORTWO));
-    if ((fileName = rcvMessage(NOMESSAGE)) == "QUIT") option = QUIT;
-	else {
+    if (option = stoi(rcvMessage(ONEORTWO)) == QUIT) {
+    	return;
+    } else {
+    	listDir(option);
+    }
+
+    if ((fileName = rcvMessage(NOMESSAGE)) == "QUIT") {
+    	return;
+	} else {
 		readFile(fileName, option);
 		return;
 	}
 
-    switch(option){
-    	case QUIT: {
-    		cout << "User chose to quit to menu!" << endl;
-    		break;
-    	}
-    	default: {
-    		cout << "ERROR IN SERVER LIST" << endl;
-    		break;
-    	}
-    }
 }
 
 void ServerUser::switchLIST(){
@@ -70,7 +66,8 @@ void ServerUser::switchLIST(){
 void ServerUser::switchSEND(){
 	cout << "User: " << _userName << " chose SEND" << endl;
 
-	//string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
+
+	string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
 	string sendStep[2];
 	int rcvCount = 0;
 
@@ -78,7 +75,7 @@ void ServerUser::switchSEND(){
 		if ((sendStep[rcvCount] = rcvMessage(NOMESSAGE)) == "QUIT"){
 			return;
 		}
-		//cout << sendInfo[rcvCount] << sendStep[rcvCount] << endl;
+		cout << sendInfo[rcvCount] << sendStep[rcvCount] << endl;
 		rcvCount++;
 	}while(rcvCount < 2);
 
@@ -86,7 +83,10 @@ void ServerUser::switchSEND(){
 
 	setReceiver(sendStep[0], sendStep[1]);
 
+
 	rcvMessage(ISMESSAGE);
+
+	receiveFile();
 
 	cout << "IN Message saved in: " << _rec.inbox << endl;
 	cout << "OUT  Message saved in: " << _user.outbox << endl;
@@ -160,60 +160,71 @@ void ServerUser::customMessage(string message){
 void ServerUser::listDir(int option) {
     struct dirent *mFile;
     vector<string> entries;
-    int incr = 0;
+    int incr = 1;
 	
 	DIR *toList = changeDir(_currentDIR, ((option == INBOX) ? _user.inbox : _user.outbox));
 	//cout << "listing: " << ((option == INBOX) ? "inbox" : "outbox") << endl << endl;
 
     while ((mFile=readdir(toList))){
         if(!strncasecmp(mFile->d_name,".",1) || !strncasecmp(mFile->d_name,"..",2)) continue;
-        entries.push_back(to_string(++incr) + ". " +((string)mFile->d_name) + '\n');
+        entries.push_back(to_string(incr++) + ". " +((string)mFile->d_name) + '\n');
         cout << string(mFile->d_name) << endl;
     }
     //cout << endl;
     if (entries.empty()){
-    	customMessage("NO files where found!");
+    	sendLogic("QUIT");
     }
-    sendVector(entries);
+    else {
+    	sendVector(entries);
+    }
     _currentDIR = changeDir(toList);
 }
 
 void ServerUser::readFile(string fileName, int option) {
-	struct dirent *box;
-	if(!(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
+	struct dirent *box = NULL;
+	DIR *target = NULL;
+	int dirIndex = 0, dirPos = 1;
 
-	string targetPath = (option == INBOX) ? _user.inbox : _user.outbox;
-	DIR *target = changeDir(_currentDIR, targetPath);
-	//DIR *target = opendir(targetPath.c_str());
+	bool isIndex = (fileName.length() < 4 && isdigit(fileName[0]));
+	if (isIndex) dirIndex = stoi(fileName, nullptr);
 
-	while ((box=readdir(target)) != NULL){
-        if(!strncasecmp(box->d_name,".",1) || !strncasecmp(box->d_name,"..",2)) continue;
-        
-        if((string)box->d_name == fileName){
-        	string filePath = targetPath + fileName;
-        	vector<string> message;
-        	ifstream file;
-        	string doneRead;
+	if (fileName.length() > 4 || isIndex){
+		if(!isIndex && !(fileName.substr( fileName.length() - 4 ) == ".txt")) fileName += ".txt";
 
-			file.open(filePath);
-			while(getline(file,doneRead)) {
-				doneRead += '\n';
-				cout << doneRead;
-				message.push_back(doneRead);
-			}
-			//getline(file,doneRead);
-			//message.push_back(doneRead);
+		string targetPath = (option == INBOX) ? _user.inbox : _user.outbox;
+		target = changeDir(_currentDIR, targetPath);
+		//DIR *target = opendir(targetPath.c_str());
 
-			file.close();
+		while ((box=readdir(target)) != NULL){
+	        if(!strncasecmp(box->d_name,".",1) || !strncasecmp(box->d_name,"..",2)) continue;
 
-			if(message.empty()) message.push_back("File was empty!");
+	        if((string)box->d_name == fileName || dirIndex == dirPos++){
+	        	string filePath = targetPath + (isIndex ? (string)box->d_name : fileName);
+	        	vector<string> message;
+	        	message.push_back("Filename: \"" + string(box->d_name) + "\"\n" + EDGE + '\n');
+	        	ifstream file;
+	        	string doneRead;
 
-			sendVector(message);
-    		_currentDIR = changeDir(target);
-			return;
-        }
-    }
-    customMessage("That file was NOT found!");
+				file.open(filePath);
+				while(getline(file,doneRead)) {
+					doneRead += '\n';
+					cout << doneRead;
+					message.push_back(doneRead);
+				}
+				//getline(file,doneRead);
+				//message.push_back(doneRead);
+
+				file.close();
+
+				if(message.empty()) message.push_back("File was empty!");
+
+				sendVector(message);
+	    		_currentDIR = changeDir(target);
+				return;
+	        }
+	    }
+	}
+    customMessage("That file was NOT found!\n");
     _currentDIR = changeDir(target);
 }
 
@@ -271,7 +282,8 @@ void ServerUser::sendVector(vector<string> entries){
 
 string ServerUser::rcvLogic(){
 	int size = recv(_socket,_buffer,BUFFER-1,0);
-	//_buffer[size] = '\0';	
+	//cout << "RCVLOGIC SIZE: " << size << endl;
+	_buffer[size-1] = '\0';	
 	string str(_buffer);
 	//str += '\n';
 	//cout << str;
@@ -282,6 +294,7 @@ string ServerUser::rcvLogic(){
 }
 
 void ServerUser::sendLogic(string message){
+	char delim[5];
 	//cout << message << endl;
 	memset(_buffer, 0, BUFFER);
 	//cout << "sending: " << message << "_" << endl;
@@ -290,7 +303,7 @@ void ServerUser::sendLogic(string message){
 		cout << strerror(errno);
 	}
 	//cout << "nowwaiting" << endl;
-	recv(_socket,_buffer,BUFFER-1,0);
+	recv(_socket,delim,5,0);
 	//cout << "received DELIMITER" << endl;
 }
 
@@ -341,7 +354,6 @@ void ServerUser::stopSend(){
 }
 
 DIR *ServerUser::changeDir(DIR *oldDIR, string path){
-
 	if (path == "IchKluk"){
 		path = _user.userPath;	
 	} 
@@ -378,7 +390,61 @@ void ServerUser::initFolders(string userName){
 }
 
 void ServerUser::receiveFile(){
-	
+
+	int chunkCount = 0;
+	int size;
+	int receivedSize;
+	FILE *file;
+	bool dataEnd = true;
+	string moreData;
+	char flag[5];
+
+
+	string fileName = rcvLogic();
+	if (fileName == "QUIT") return;
+	string newPath = _rec.inbox + fileName;
+
+	file = fopen(newPath.c_str(), "wb");
+	cout << "Anfang WRITE to " << fileName << endl << endl;
+
+	int count = 0;
+
+	memset(_buffer, 0, BUFFER);
+
+	do{
+		
+		//HOW MUCH DATA TO EXPECT
+		while ((size = recv(_socket,_buffer,5,0)) == -1) cout << "Receive failed, trying again!" << endl;
+		stopSend();
+		receivedSize = atoi(_buffer);
+		
+
+		//MORE DATA FOLLOWING FLAG
+		while ((size = recv(_socket,flag, 5, 0)) == -1) cout << "Receive failed, trying again!" << endl;
+		stopSend();
+		//cout << count++ << ": _" << flag << "_ moreData" << endl;
+
+		dataEnd = (strncmp(flag, "0", 1) == 0);
+		if(dataEnd) break;
+
+
+		//RECEIVE 
+		while ((size = recv(_socket,_buffer,receivedSize,0)) == -1) cout << "Receive failed, trying again!" << endl;
+		stopSend();
+		//cout << "                             expected = received? " << ((receivedSize == size) ? "YES!" : "NO :(") << endl;
+		//cout << _buffer[0] <<
+
+		//printf("_%s_\n", _buffer);
+
+		fwrite(_buffer, sizeof(char), receivedSize, file);
+
+		memset(_buffer, 0, BUFFER);
+		
+		
+	}while (!dataEnd);
+		cout << "ENDE WRITE " << endl << endl;
+	fclose(file);
+
 }
 
 ServerUser::~ServerUser(){

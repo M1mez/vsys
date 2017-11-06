@@ -28,12 +28,19 @@ void ClientUser::switchREAD(){
 	cout << "2: Read an outbox file!" << endl;
 	cout << "9: Quit to menu!" << endl;
 	if(sendMessage(1, ONEORTWO)) return;
+	if (rcvLogic() == "QUIT"){
+		cout << "No Messages found!" << endl;
+	}else{
+		cout << "Listing Messages:" << endl << EDGE;
+		rcvVector();
+		cout << EDGE;
 
-	cout << "Name a file!" << endl;
-	if(sendMessage(80, NOMESSAGE)) return;
+		cout << "Name a file:  ";
+		if(sendMessage(80, NOMESSAGE)) return;
 
-    rcvVector();
-    cout << EDGE << "MESSAGE END" << endl;
+	    rcvVector();
+	    cout << EDGE << "MESSAGE END" << endl;
+	}
 }
 
 void ClientUser::switchLIST(){ //CHECK
@@ -45,15 +52,18 @@ void ClientUser::switchLIST(){ //CHECK
     cout << "9: Quit to menu!" << endl;
 
     if(sendMessage(1, ONEORTWO)) return;
-    cout << EDGE << "LISTING MESSAGES:" << endl << endl;
-    rcvVector();
-    cout << EDGE;
+    if (rcvLogic() == "QUIT"){
+		cout << "No Messages found!" << endl;
+	}else{
+	    cout << EDGE << "LISTING MESSAGES:" << endl << endl;
+	    rcvVector();
+	    cout << EDGE;
+	}
 }
 
 void ClientUser::switchSEND(){ //CHECK
 	cout << "SEND:" << endl << EDGE;
 
-	sendFile();
 
 	string str;
     string sendInfo[] = {"Empfänger: ", "Betreff: ", "Nachricht:\n"};
@@ -66,6 +76,9 @@ void ClientUser::switchSEND(){ //CHECK
     cout << sendInfo[sendCount++] << endl << EDGE;
         sendMessage(BUFFER, ISMESSAGE);
         cout << EDGE << "Message sent!" << endl;
+
+
+	sendFile();
 }
 
 void ClientUser::switchDEL(){
@@ -191,8 +204,9 @@ bool ClientUser::sendMessage(int maxInput, int messageType){
 }
 
 void ClientUser::sendLogic(string message){
+	char del[5];
 	send(_socket,message.c_str(),strlen(message.c_str())+1,0);
-	recv(_socket,_buffer,BUFFER+1,0);
+	recv(_socket,del,BUFFER+1,0);
 }
 
 /*void ClientUser::stopSend(){
@@ -249,53 +263,72 @@ string ClientUser::rcvLogic(){
 }
 
 bool ClientUser::sendFile(){
-	memset(_buffer, '\0', BUFFER);
+	memset(_buffer, 0, BUFFER);
 
-
-	vector<vector<char>> fileData;
-	vector<int> fileBytes;
-	int readCount = 0;
-	int readSize = 0;
+	int readSize;
+	char flag[] = "1";
+	char del[5];
 	FILE *file;
-	char *tempChunk = (char*) malloc(sizeof(char)*BUFFER);
+	string filePath, fileName;  
+	int inputCount = 0;
 
-	int fehler = 1;
-
-	string filePath = "/media/fejo/Daten/FH/vsys/tryFileSend/testest.png";
-	file = fopen(filePath.c_str(), "r");
-	cout << "Anfang READ " << fehler++ << endl << endl;
-	do{
-		readSize = fread(tempChunk, sizeof(char), BUFFER, file);
-		vector<char> v(tempChunk, tempChunk+readSize);
-
-		fileBytes.push_back(readSize);
-		fileData.push_back(v);
-
-		cout << "Fehler " << fehler++ << fileBytes[readCount] << endl;
-	}while(fileBytes[readCount++] > 0);
-		cout << "ENDE READ" << endl << endl;
-	fclose(file);
-
-
+	cout << "DRAG'N'DROP your file NOW: "; 
 	
+	do {
+		if (inputCount > 0){
+			inputCount++;
+			cout << "Enter correct Path or \"QUIT\": ";
+		}
+		cin >> filePath;
+		if (filePath == "QUIT") {
+			sendLogic("QUIT");
+			return false;
+		}
 
-	string newPath = "/media/fejo/Daten/FH/vsys/tryFileReceive/testest.png";
-	file = fopen(newPath.c_str(), "a");
-	int chunkCount = 0;
-	cout << "Anfang WRITE " << fehler++ << endl << endl;
+		filePath.erase( remove( filePath.begin(), filePath.end(), '\'' ), filePath.end());
+		cout << filePath << "1" << endl;
+		ifstream f(filePath.c_str());
+		cout << filePath << "2" << endl;
+		if (f.good()) break;
+	} while (1);
+
+	size_t i = filePath.rfind("/", filePath.length());
+	fileName = filePath.substr(i+1, filePath.length() - i - 1);
+
+	cout << fileName << " -> FileName" << endl;
+
+
+	if (stringCompare(filePath, "QUIT")) return false;
+	file = fopen(filePath.c_str(), "rb");
+
+	sendLogic(fileName);
+
+	strcpy(flag, "1");
+
 	do{
-		memset(tempChunk, 0, fileBytes[chunkCount]);
-		tempChunk = fileData[chunkCount].data();
 
-		fwrite(tempChunk, sizeof(char), fileBytes[chunkCount], file);
-		cout << "Fehler " << fehler++ << " " << chunkCount << endl;
-		chunkCount++;
-	}while (chunkCount < readCount);
-		cout << "ENDE WRITE " << fehler++ << endl << endl;
+		//HOW MUCH DATA WILL BE SENT?
+		readSize = fread(_buffer, sizeof(char), BUFFER, file);
+		sendLogic(to_string(readSize));
+
+		// WILL MORE DATA FOLLOW? IF YES, SEND ALL
+		if(readSize > 0){
+			sendLogic(flag);
+			//string is delimited, so couldn't use sendLogic
+			send(_socket,_buffer,readSize,0);
+			recv(_socket,del,BUFFER+1,0);
+		}
+
+	}while(readSize > 0);
+
+	// NO MORE DATA FOLLOWS
+	strcpy(flag, "0");
+	sendLogic(flag);
+
 	fclose(file);
-
-	free(tempChunk);
-
+	cout << "File was successfully sent!" << endl;
+	
+	memset(_buffer, 0, BUFFER);
 	return true;
 
 }

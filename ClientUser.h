@@ -1,16 +1,17 @@
+#include <algorithm>
+#include <algorithm>
+#include <arpa/inet.h>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <string>
+#include <locale>
 #include <netinet/in.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <cstdio>
-#include <algorithm>
-#include <arpa/inet.h>
-#include <locale>
-#include <algorithm>
-#include <cstring>
+#include <fstream>
 
 #define DELIMITER ".\n"
 #define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
@@ -35,6 +36,7 @@ public:
 	~ClientUser();
 private:
 	void sendLogic(std::string message);
+	//void sendLogic(char *message);
 	bool sendFile();
 	char _buffer[BUFFER] = {};
 	void stopSend();

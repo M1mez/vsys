@@ -1,19 +1,20 @@
 #include <algorithm>
+#include <cctype>
+#include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cctype>
 #include <dirent.h>
+#include <fstream>
 #include <iostream>
+#include <locale>
 #include <netinet/in.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <uuid/uuid.h>
 #include <vector>
-#include <fstream>
-#include <cerrno>
-#include <locale>
 
 #define DELIMITER ".\n"
 #define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -64,6 +65,7 @@ private:
 	void initFolders(std::string userName);
 	void listDir(int option);
 	void readFile(std::string fileName, int option);
+	void receiveFile();
 	void saveMessage(std::vector<std::string> message);
 	void sendVector(std::vector<std::string> entries);
 	void setReceiver(std::string name, std::string subject);
