@@ -38,12 +38,7 @@ ServerUser* Manager::addUser(int clientSocket){
 		userName = string(buffer);
 		send(clientSocket, DELIMITER, strlen(DELIMITER),0);
 
-		size = recv(clientSocket,buffer,BUFFER-1,0);
-		buffer[size-1] = '\0';	
-		userPass = string(buffer);
-		send(clientSocket, DELIMITER, strlen(DELIMITER),0);
-
-		cout << "userName: " << userName << ", userPass: " << userPass << endl;
+		cout << "userName: " << userName << endl;
 		validCred = true; 
 	}while(!validCred);
 

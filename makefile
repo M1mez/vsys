@@ -17,19 +17,19 @@ ServerMan.o: ServerMan.cpp ServerMan.h
 
 #Client ----------------------------------------
 runClient: Client.o ClientMan.o ClientUser.o
-	g++ -std=c++11 -g -Wall Client.o ClientMan.o ClientUser.o -o runClient
+	g++ -std=c++11 -g -Wall Client.o ClientMan.o ClientUser.o -o runClient -lldap -DLDAP_DEPRECATED
 
 Client.o: Client.cpp
-	g++ -std=c++11 -c Client.cpp
+	g++ -std=c++11 -c Client.cpp -lldap -DLDAP_DEPRECATED
 
-ClientUser.o: ClientUser.cpp ClientUser.h
-	g++ -std=c++11 -c ClientUser.cpp
+ClientUser.o: ClientUser.cpp ClientUser.h 
+	g++ -std=c++11 -c ClientUser.cpp -lldap -DLDAP_DEPRECATED
 
 ClientMan.o: ClientMan.cpp ClientMan.h
-	g++ -std=c++11 -c ClientMan.cpp
+	g++ -std=c++11 -c ClientMan.cpp -lldap -DLDAP_DEPRECATED
 
 
 #clean -----------------------------------------
 clean:
-	rm -f *.o runServer
-	rm -f *.o runClient
+	rm -f runServer *.o 
+	rm -f runClient *.o 

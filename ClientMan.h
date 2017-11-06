@@ -5,6 +5,7 @@ class Manager {
 public:
 	Manager(int port, std::string ip);
 	void switchLogic();
+	ClientUser* addUser(int socket);
 	~Manager();
 private:
 	ClientUser *_user;

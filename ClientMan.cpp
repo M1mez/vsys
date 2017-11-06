@@ -1,4 +1,5 @@
 #include "ClientMan.h"
+#include "ldaptest.cpp"
 
 using namespace std;
 
@@ -27,7 +28,7 @@ Manager::Manager(int port, string ip): _port(port), _ip(ip){
 		perror("Could not connect to server");
 		exit(EXIT_FAILURE);
 	}
-	_user = new ClientUser(socketInt);
+	_user = addUser(socketInt);
 }
 
 void Manager::switchLogic(){
@@ -82,6 +83,31 @@ void Manager::switchLogic(){
 		 <<	((failCounter == 5) ? 
 		 	" by 5 times invalid input!" :
 		 	", see you next time!") << endl;
+}
+
+ClientUser* Manager::addUser(int socket)
+{
+	int loginFailCount = 2;
+	string inputName;
+
+do
+{
+		cout << "Username: ";
+		cin >> inputName;
+
+	
+}
+while(loginLDAP(inputName) != EXIT_SUCCESS && loginFailCount--);
+
+if(loginFailCount < 0)
+{
+	//send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
+	return NULL;
+}
+
+send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
+return new ClientUser(socket);
+	
 }
 
 

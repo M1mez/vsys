@@ -1,9 +1,9 @@
 #include <algorithm>
-#include <algorithm>
 #include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <locale>
 #include <netinet/in.h>
@@ -11,7 +11,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fstream>
+
+
 
 #define DELIMITER ".\n"
 #define EDGE "~~~~~~~~~~~~~~~~~~~~~~~~~~\n"

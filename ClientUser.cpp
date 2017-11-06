@@ -6,17 +6,6 @@ using namespace std;
 
 ClientUser::ClientUser(int socket) : _socket(socket){
 
-	//TODO LDAP
-
-	string str;
-
-	cout << "USERNAME: "; 
-	cin >> str; //userName
-    sendLogic(str);
-
-	cout << "PASSWORD: "; 
-    cin >> str; //password
-    sendLogic(str);
 }
 
 void ClientUser::switchREAD(){
