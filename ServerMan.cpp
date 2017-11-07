@@ -20,7 +20,6 @@ Manager::Manager(int port, string path){
 
 ServerUser* Manager::addUser(int clientSocket){
 	bool isValid;
-	char buffer[BUFFER-1] = {};
 	int size;
 	int checkCount = 2;
 	char del[5];
@@ -54,7 +53,7 @@ ServerUser* Manager::addUser(int clientSocket){
 
 
 		printf("userName: %s\n", userName);
-		printf("PW:       %s\n", PW);
+		//printf("PW:       %s\n", PW);
 
 		isValid = (loginLDAP(userName, PW) == EXIT_SUCCESS);
 
@@ -64,27 +63,34 @@ ServerUser* Manager::addUser(int clientSocket){
 			recv(clientSocket, del, BUFFER-1,0);
 			memset(response, 0, strlen(response));
 			break;
-		} else if (!checkCount) {
+		} else if (checkCount == 0) {
 			strcpy(response, "BLOCK");
 			send(clientSocket, response, strlen(response),0);
 			recv(clientSocket, del, BUFFER-1,0);
 			memset(response, 0, strlen(response));
+			free(userName);
+			free(PW);
+			blockUser(IP);
 			return NULL;
 		} else {
 			strcpy(response, "INVALID");
 			send(clientSocket, response, strlen(response),0);
 			recv(clientSocket, del, BUFFER-1,0);
 			memset(response, 0, strlen(response));
+			checkCount--;
 		}
 
 
 	}while(!isValid);
-
-	return new ServerUser(userName, _path, clientSocket);
+	string user(userName);
+	free(userName);
+	free(PW);
+	return new ServerUser(user, _path, clientSocket);
 }
 
-void blockUser(string IP){
-
+void Manager::blockUser(string IP){
+	cout << "User with IP: " << IP << " is now definitely blocked." << endl 
+		 << "Please don't try again, because it really works." << endl; 
 }
 
 string Manager::getIP(struct sockaddr_in clientAddr){

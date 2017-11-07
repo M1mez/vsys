@@ -4,17 +4,11 @@ using namespace std;
 
 ServerUser::ServerUser(string userName, string path, int socket) :_userName(userName), _socket(socket){
 	
-	//_clientAddr = clientAddr;
-
 	_user.mStorage = path;
 	_user.userPath = path + userName + "/"; 
 	_user.outbox = path + userName + "/outbox/";
 	_user.inbox = path + userName + "/inbox/";
 	initFolders(userName);
-
-	//cout << EDGE;
-	//cout << _user.inbox << endl << _user.outbox << endl << _user.mStorage << endl << _user.userPath << endl;
-	//cout << EDGE;
 
 	_currentDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!" << endl;

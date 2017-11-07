@@ -5,11 +5,10 @@ using namespace std;
 
 
 ClientUser::ClientUser(int socket) : _socket(socket){
-	string inputName;
-	string response;
+	string inputName, response;
 	char* PW;
 	char del[5];
-	bool isBlock = false;
+
 	do
 	{
 			cout << "Username: ";
@@ -24,16 +23,16 @@ ClientUser::ClientUser(int socket) : _socket(socket){
 
 			if (response == "BLOCK"){
 				 _isValid = false;
+				 free(PW);
 				 return;
 			} else _isValid = (response == "VALID");
 	}
 	while(!_isValid);
+	free(PW);
 }
 
 void ClientUser::switchREAD(){
 	cout << "READ:" << endl << EDGE;
-	
-	string str;
 
 	cout << "1: Read an inbox  file!"  << endl;
 	cout << "2: Read an outbox file!" << endl;
@@ -54,7 +53,7 @@ void ClientUser::switchREAD(){
 	}
 }
 
-void ClientUser::switchLIST(){ //CHECK
+void ClientUser::switchLIST(){
 	cout << "LIST:" << endl << EDGE;
 
 

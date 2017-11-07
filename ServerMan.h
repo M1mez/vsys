@@ -23,6 +23,7 @@ private:
 	//std::vector<ServerUser*> _users;
 	std::string _path;
 	std::string getIP(struct sockaddr_in clientAddr);
+	void blockUser(std::string IP);
 	
 	char _buffer[BUFFER] = {};
 };

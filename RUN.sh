@@ -2,7 +2,7 @@
 ip=127.0.0.1 #`ifconfig wlo1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
 path=`pwd`
 port=$(shuf -i 5000-9999 -n 1)
-serverCmd="bash -c \"valgrind --leak-check=yes $path/runServer $port $path\""
+serverCmd="bash -c \"valgrind --leak-check=yes --track-origins=yes $path/runServer $port $path\""
 clientCmd="bash -c \"valgrind --leak-check=full --show-leak-kinds=all $path/runClient $port $ip\""
 
 #multiscreen: if no arguments set, then single screen
@@ -16,7 +16,7 @@ fi
 
 #compile both files
 make clean
-make
+make	
 
 #print information
 echo "ip = $ip"
@@ -27,4 +27,5 @@ echo "start client: \"$clientCmd\""
 
 #run commands
 gnome-terminal --geometry 70x30+"$term1"+19 -e "$serverCmd"
+sleep 1
 gnome-terminal --geometry 70x30+"$term2"+19 -e "$clientCmd"	

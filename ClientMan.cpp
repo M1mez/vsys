@@ -93,8 +93,11 @@ void Manager::switchLogic(){
 ClientUser* Manager::addUser(int socket)
 {
 	ClientUser *newUser = new ClientUser(socket);
-
-	return newUser->_isValid ? newUser : NULL;
+	if (!newUser->_isValid){
+		delete newUser;
+		return NULL;
+	}
+	return newUser;
 	
 }
 
