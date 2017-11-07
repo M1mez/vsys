@@ -50,6 +50,7 @@ public:
 	~ServerUser();
 	std::string _userName;
 private:
+	struct sockaddr_in _clientAddr;
 	DIR *_currentDIR;
 	DIR *_userDIR;
 	DIR *changeDir(DIR *oldDIR, std::string path = "IchKluk");

@@ -1,5 +1,4 @@
 #include "ClientMan.h"
-#include "ldaptest.cpp"
 
 using namespace std;
 
@@ -17,6 +16,7 @@ Manager::Manager(int port, string ip): _port(port), _ip(ip){
 	_address.sin_port = htons(port);
 	inet_aton(ip.c_str(), &_address.sin_addr);
 
+
 	if(connect (socketInt, (struct sockaddr *) &_address,sizeof(_address)) == 0){
 		printf("Connected to server.\n");
 		/*size = recv(createSocket,buffer,RCVBUFF,0);
@@ -30,6 +30,11 @@ Manager::Manager(int port, string ip): _port(port), _ip(ip){
 	}
 	_user = addUser(socketInt);
 }
+
+bool Manager::validUser(){
+	return _user;
+}
+
 
 void Manager::switchLogic(){
 	string str;
@@ -87,24 +92,9 @@ void Manager::switchLogic(){
 
 ClientUser* Manager::addUser(int socket)
 {
-	int loginFailCount = 2;
-	string inputName;
+	ClientUser *newUser = new ClientUser(socket);
 
-do
-{
-		cout << "Username: ";
-		cin >> inputName;
-}
-while(loginLDAP(inputName) != EXIT_SUCCESS && loginFailCount--);
-
-if(loginFailCount < 0)
-{
-	//send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
-	return EXIT_FAILURE;
-}
-
-send(socket,inputName.c_str(),strlen(inputName.c_str())+1,0);
-return new ClientUser(socket);
+	return newUser->_isValid ? newUser : NULL;
 	
 }
 

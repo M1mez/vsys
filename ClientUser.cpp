@@ -5,7 +5,29 @@ using namespace std;
 
 
 ClientUser::ClientUser(int socket) : _socket(socket){
+	string inputName;
+	string response;
+	char* PW;
+	char del[5];
+	bool isBlock = false;
+	do
+	{
+			cout << "Username: ";
+			cin >> inputName;
+			PW = getpass("Password: ");
 
+			sendLogic(inputName);
+			send(_socket,PW,strlen(PW)+1,0);
+			recv(_socket,del,BUFFER+1,0);
+
+			response = rcvLogic();
+
+			if (response == "BLOCK"){
+				 _isValid = false;
+				 return;
+			} else _isValid = (response == "VALID");
+	}
+	while(!_isValid);
 }
 
 void ClientUser::switchREAD(){
@@ -275,9 +297,7 @@ bool ClientUser::sendFile(){
 		}
 
 		filePath.erase( remove( filePath.begin(), filePath.end(), '\'' ), filePath.end());
-		cout << filePath << "1" << endl;
 		ifstream f(filePath.c_str());
-		cout << filePath << "2" << endl;
 		if (f.good()) break;
 	} while (1);
 

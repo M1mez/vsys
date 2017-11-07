@@ -7,6 +7,7 @@ public:
 	void switchLogic();
 	ClientUser* addUser(int socket);
 	~Manager();
+	bool validUser();
 private:
 	ClientUser *_user;
 	int _port;

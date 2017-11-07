@@ -19,9 +19,11 @@ int main(int argc, char **argv){
 
 	int port = atoi(argv[1]);
 	string ip = string(argv[2]);
-
+	
 	Manager man(port, ip);
-	man.switchLogic();
+	if(man.validUser()){
+		man.switchLogic();
+	}
 
     return 0;
 }

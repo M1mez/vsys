@@ -4,6 +4,8 @@ using namespace std;
 
 ServerUser::ServerUser(string userName, string path, int socket) :_userName(userName), _socket(socket){
 	
+	//_clientAddr = clientAddr;
+
 	_user.mStorage = path;
 	_user.userPath = path + userName + "/"; 
 	_user.outbox = path + userName + "/outbox/";
@@ -16,10 +18,12 @@ ServerUser::ServerUser(string userName, string path, int socket) :_userName(user
 
 	_currentDIR = changeDir(NULL);
 	cout << "User " << _userName << " built up a connection!" << endl;
+	//cout << "IP IS: " << getIP() << endl;
 
 	//string i = "Welcome. Please enter your command:\n";
 	//send(_socket, i.c_str(), strlen(i.c_str()),0);
 }
+
 
 void ServerUser::switchREAD(){
 	cout << "User: " << _userName << " chose READ" << endl;
@@ -428,19 +432,13 @@ void ServerUser::receiveFile(){
 		if(dataEnd) break;
 
 
-		//RECEIVE 
+		//RECEIVE AND WRITE
 		while ((size = recv(_socket,_buffer,receivedSize,0)) == -1) cout << "Receive failed, trying again!" << endl;
 		stopSend();
-		//cout << "                             expected = received? " << ((receivedSize == size) ? "YES!" : "NO :(") << endl;
-		//cout << _buffer[0] <<
-
-		//printf("_%s_\n", _buffer);
-
 		fwrite(_buffer, sizeof(char), receivedSize, file);
 
+
 		memset(_buffer, 0, BUFFER);
-		
-		
 	}while (!dataEnd);
 		cout << "ENDE WRITE " << endl << endl;
 	fclose(file);

@@ -20,8 +20,9 @@ public:
 	struct sockaddr_in clientAddress;
 	socklen_t addrlen;
 private:
-	std::vector<ServerUser*> _users;
+	//std::vector<ServerUser*> _users;
 	std::string _path;
+	std::string getIP(struct sockaddr_in clientAddr);
 	
 	char _buffer[BUFFER] = {};
 };

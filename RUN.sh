@@ -15,6 +15,7 @@ if [ $# -eq 1 ]
 fi
 
 #compile both files
+make clean
 make
 
 #print information

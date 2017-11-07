@@ -33,6 +33,7 @@ public:
 	void switchQUIT();
 	int chooseMode();
 	void rcvVector();
+	bool _isValid;
 	bool stringCompare(std::string src, std::string tar);
 	~ClientUser();
 private:
