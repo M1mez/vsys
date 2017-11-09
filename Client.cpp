@@ -10,16 +10,16 @@ using namespace std;
 
 int main(int argc, char **argv){
 
+	//USER HAS TO PROVIDE 2 ARGUMENTS
 	if(argc < 2 ){
 		printf("Please enter IP address and Port number\n");
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Client started\n");
-
 	int port = atoi(argv[1]);
 	string ip = string(argv[2]);
-	
+
+	//AFTER USER ENTERED VALID INFORMATION, JUMP TO MENU
 	Manager man(port, ip);
 	if(man.validUser()){
 		man.switchLogic();

@@ -40,8 +40,8 @@ int loginLDAP(char *inputName, char* PW)
 	
 	//CONNECT TO LDAP (NOT YET ANONYMOUSLY)
 	string user = "uid=" + string(inputName) + ",ou=People," + LDAP_SEARCHBASE;
-	//rc = ldap_simple_bind_s(ld, NULL, NULL);
-	rc = ldap_simple_bind_s(ld, user.c_str(), PW);
+	rc = ldap_simple_bind_s(ld, NULL, NULL);
+	//rc = ldap_simple_bind_s(ld, user.c_str(), PW);
 	if(rc != LDAP_SUCCESS) return exit(attr, EXIT_FAILURE);
 
 
@@ -50,8 +50,7 @@ int loginLDAP(char *inputName, char* PW)
  	searchFilter = "(uid=" + string(inputName) + ")";
  	rc = ldap_search_s(ld, LDAP_SEARCHBASE, SCOPE, searchFilter.c_str(), attr, 0, &result);
  	if(rc != LDAP_SUCCESS) {
-	    cout << "Username or Password incorrect!" << endl <<"Press ENTER to continue..." << endl;
-	    getchar();
+	    cout << "Username or Password incorrect!" << endl;
 	if(rc != LDAP_SUCCESS) return exit(attr, EXIT_FAILURE);
  	}
 
@@ -65,8 +64,7 @@ int loginLDAP(char *inputName, char* PW)
  		rc = ldap_simple_bind_s(ld2, dn.c_str(), PW);
  	}
  	if(rc != LDAP_SUCCESS) {
-	    cout << "Username or Password incorrect!" << endl <<"Press ENTER to continue..." << endl;
-	    getchar();
+	    cout << "Username or Password incorrect!" << endl;
  		return exit(attr, EXIT_FAILURE);
  	}
 

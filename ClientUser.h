@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <climits>
 
 
 
@@ -26,24 +27,22 @@ enum{INBOX=1, OUTBOX};
 class ClientUser {
 public:
 	ClientUser(int socket);
-	void switchREAD();
-	void switchLIST();
-	void switchSEND();
-	void switchDEL();
-	void switchQUIT();
-	int chooseMode();
-	void rcvVector();
 	bool _isValid;
 	bool stringCompare(std::string src, std::string tar);
+	int chooseMode();
+	void rcvVector();
+	void switchDEL();
+	void switchLIST();
+	void switchQUIT();
+	void switchREAD();
+	void switchSEND();
 	~ClientUser();
 private:
-	void sendLogic(std::string message);
-	//void sendLogic(char *message);
 	bool sendFile();
-	char _buffer[BUFFER] = {};
-	void stopSend();
-	int _socket;
 	bool sendMessage(int maxInput, int messageType);
-	std::string rcvLogic();
+	char _buffer[BUFFER] = {};
+	int _socket;
 	std::string _name;
+	std::string rcvLogic();
+	void sendLogic(std::string message);
 };
